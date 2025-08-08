@@ -1,0 +1,21 @@
+[project]
+name = "fft-src-nyquist-suppression"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib~=3.10.0",
+    "numpy~=2.1",
+    "scipy~=1.15.1",
+    "librosa==0.10.2.post1",
+    "ipykernel>=6.29.5",
+    "standard-aifc>=3.13.0",
+    "standard-sunau>=3.13.0",
+    "sympy>=1.14.0",
+    "samplerate>=0.2.1",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
