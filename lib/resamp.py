@@ -1,9 +1,7 @@
 # FFT-based resmpling
 
-import warnings
 from lib.util import *
 import numpy as np
-import scipy.signal
 
 def fft_resample(input, taper, output_len):
     """Length of taper should be smaller of input/output"""
