@@ -1,1 +1,94 @@
+# %%
+import matplotlib.pyplot as plt
+
 from lib.util import *
+from lib.taper import get_taper
+from lib.resamp import fft_resample
+
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams["mathtext.fontset"] = 'cm'
+plt.rcParams['pdf.fonttype']=42
+
+N = 44100
+M = 96000
+Fs_out = 96000
+L = 500
+
+tapers = {
+    'Box': 'box',
+    'Cosine': 'cosine',
+    'Hann': 'hann',
+    'Blackman': 'blackman',
+    'Dolph–Chebyshev': ('chebwin', 63),
+    'DDC $\\alpha=1/2$': ('ddc', 120, 0.5),
+    'DDC optimal': ('ddc', 120),
+}
+
+
+# %%
+
+%matplotlib osx
+
+for name, spec in tapers.items():
+    taper = get_taper(spec, N, L)
+    if 'win' not in taper: continue
+
+    plt.plot(taper['win'], label=name)
+
+# plt.xlim(M/2-1.2*L, M/2+0.2*L)
+plt.legend(loc='upper right')
+plt.show()
+
+# %%
+%matplotlib inline
+
+input = np.zeros(N)
+input[N//2] = 1
+time = (np.arange(M) - M//2) / Fs_out * 1000
+mask = np.abs(time) < 45
+
+box_taper = get_taper('box', N, L)['taper']
+box_output = fft_resample(input, box_taper, M)
+box_output /= np.max(np.abs(box_output))
+
+fig = plt.figure(figsize=(5, 5.625))
+fig.subplots_adjust(left=0.13, bottom=0.12, right=0.98, top=0.995, wspace=0.1, hspace=0.3)
+axs = fig.subplots(len(tapers)//2, 2, sharex=True, sharey=True)
+
+for pos, (name, spec) in enumerate(tapers.items()):
+    if spec == 'box': continue
+
+    row = (pos-1)//2
+    col = (pos-1)%2
+    last_row = row == len(tapers)//2 - 1
+
+    taper = get_taper(spec, N, L)['taper']
+
+    output = fft_resample(input, taper, M)
+    output /= np.max(np.abs(output))
+
+    ax = axs[row][col]
+    ax.plot(time[mask], amp2db(box_output[mask]), label='Box', linewidth=1, color='#ccc')
+    # ax.fill_between(time[mask], -300, amp2db(box_output[mask]), linewidth=1, color='#ccc', ec='#ccc')
+    ax.plot(time[mask], amp2db(output[mask]), label=name, linewidth=1, c='tab:blue')
+
+    # ax.axhline(-120)
+    # ax.axhline(0)
+
+    # ax.legend(loc='upper right')
+    ax.set_xlim(-42, 42)
+    ax.set_ylim(-175, 5)
+    ax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='y')
+    ax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='x')
+
+    pad = -17
+    if last_row:
+        pad = -42
+        ax.set_xlabel("Time (ms)", labelpad=1)
+    ax.set_title(f'({chr(ord('a')+pos-1)}) {name}', y=0, pad=pad)
+
+fig.supylabel("Magnitude (dB)", x=0.010)
+
+plt.show()
+
+fig.savefig("irs.pdf")
