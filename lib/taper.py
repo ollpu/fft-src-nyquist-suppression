@@ -77,8 +77,8 @@ def get_taper(taper_spec, M, L):
     end_pos = (M + 1) // 2
     start_pos = end_pos - L
 
-    mid = (start_pos + end_pos) // 2
-    S[:mid] = 1
+    # mid = (start_pos + end_pos) // 2
+    S[:end_pos] = 1
 
     result = {}
     if taper_spec != 'box':
