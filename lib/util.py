@@ -1,8 +1,6 @@
 import numpy as np
 import librosa
 
-DTYPE='float64'
-
 def amp2db(S):
     return librosa.amplitude_to_db(np.abs(S), amin=1e-15, top_db=500)
 

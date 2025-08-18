@@ -24,6 +24,9 @@ output_len = int(Fs_out / Fs_in * input_len)
 L = int(0.05 * input_len / 2)
 print(output_len, L)
 
+def norm(x):
+    return x / np.max(np.abs(x))
+
 # %% Input signal
 
 input = 2*np.random.rand(input_len) - 1
@@ -33,13 +36,18 @@ envelope = np.exp(-40 * (time % 1))
 
 input *= envelope
 
+input = norm(input)
+
 if play:
     sd.play(input[:4*Fs_in], Fs_in)
     sd.wait()
 
 # %% FFT resampling without tapering
 
-output_naive = fft_resample(input, np.ones(input_len), output_len)
+output_naive = norm(fft_resample(input, np.ones(input_len), output_len))
+
+plt.plot(amp2db(output_naive[:5*Fs_out]))
+plt.show()
 
 if play:
     sd.play(output_naive[:4*Fs_out], Fs_out)
@@ -48,8 +56,12 @@ if play:
 
 # %% FFT resampling with tapering
 
-taper = get_taper(('ddc', 150), input_len, L)['taper']
-output_tapered = fft_resample(input, taper, output_len)
+taper, _ = get_taper(('ddc', 150), input_len, L)
+# taper, _ = get_taper(('cosine'), input_len, L)
+output_tapered = norm(fft_resample(input, taper, output_len))
+
+plt.plot(amp2db(output_tapered[:5*Fs_out]))
+plt.show()
 
 if play:
     sd.play(output_tapered[:4*Fs_out], Fs_out)
@@ -59,9 +71,6 @@ if play:
 
 %matplotlib osx
 plt.close()
-
-def norm(x):
-    return x / np.max(np.abs(x))
 
 time_in = np.arange(input_len) / Fs_in
 time_out = np.arange(output_len) / Fs_out
@@ -91,19 +100,19 @@ ax1.set_title('(a)', y=0, pad=-17)
 ax1.tick_params(pad=2)
 
 ax2 = plt.subplot(gs[1])
-plt.plot(time_in[mask_in], norm(input[mask_in]))
+plt.plot(time_in[mask_in], input[mask_in])
 plt.xlim(start, stop)
 plt.ylim(-0.01, 0.01)
 plt.setp(ax2.get_xticklabels(), visible=False)
 ax2.set_title('(b)', y=0, pad=-17)
 
 ax3 = plt.subplot(gs[2], sharex=ax2, sharey=ax2)
-plt.plot(time_out[mask_out], norm(output_naive[mask_out]))
+plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_xticklabels(), visible=False)
 ax3.set_title('(c)', y=0, pad=-17)
 
 ax4 = plt.subplot(gs[3], sharex=ax2, sharey=ax2)
-plt.plot(time_out[mask_out], norm(output_tapered[mask_out]))
+plt.plot(time_out[mask_out], output_tapered[mask_out])
 ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_title('(d)', y=0, pad=-42)
 

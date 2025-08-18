@@ -29,7 +29,7 @@ def get_window(win_spec, M, L):
             win = np.fft.fftshift(np.real(np.fft.ifft(u)))
             win /= np.sum(win)
             win = np.pad(win, (0, add))
-            return { 'win': win, 'R': sidelobes_R, 'd': d, 'order': N-1 }
+            return win, { 'R': sidelobes_R, 'd': d, 'order': N-1 }
 
         case ('ddc', sidelobes_dB, *rest):
             sidelobes_R = db2amp(sidelobes_dB)
@@ -64,12 +64,12 @@ def get_window(win_spec, M, L):
             win = np.fft.fftshift(np.real(np.fft.ifft(w)))
             win /= np.sum(win)
 
-            return { 'win': win, 'R': sidelobes_R, 'd': d, 'alpha': alpha, 'order': N }
+            return win, { 'R': sidelobes_R, 'd': d, 'alpha': alpha, 'order': N }
 
         case _:
             win = scipy.signal.windows.get_window(win_spec, L, fftbins=False)
             win /= np.sum(win)
-            return { 'win': win }
+            return win, {}
 
 def get_taper(taper_spec, M, L):
     S = np.zeros(M)
@@ -80,11 +80,10 @@ def get_taper(taper_spec, M, L):
     # mid = (start_pos + end_pos) // 2
     S[:end_pos] = 1
 
-    result = {}
+    meta = {}
     if taper_spec != 'box':
-        result = get_window(taper_spec, M, L)
-        S[start_pos:end_pos] = np.cumsum(result['win'])[::-1]
+        taper, meta = get_window(taper_spec, M, L)
+        S[start_pos:end_pos] = np.cumsum(taper)[::-1]
 
     S[(M+2)//2:] = S[(M-1)//2:0:-1]
-    result['taper'] = S
-    return result
+    return S, meta

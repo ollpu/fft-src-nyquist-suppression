@@ -30,10 +30,10 @@ tapers = {
 %matplotlib osx
 
 for name, spec in tapers.items():
-    taper = get_taper(spec, N, L)
+    taper, _ = get_taper(spec, N, L)
     if 'win' not in taper: continue
 
-    plt.plot(taper['win'], label=name)
+    plt.plot(taper, label=name)
 
 # plt.xlim(M/2-1.2*L, M/2+0.2*L)
 plt.legend(loc='upper right')
@@ -47,7 +47,7 @@ input[N//2] = 1
 time = (np.arange(M) - M//2) / Fs_out * 1000
 mask = np.abs(time) < 45
 
-box_taper = get_taper('box', N, L)['taper']
+box_taper, _ = get_taper('box', N, L)
 box_output = fft_resample(input, box_taper, M)
 box_output /= np.max(np.abs(box_output))
 
@@ -62,7 +62,7 @@ for pos, (name, spec) in enumerate(tapers.items()):
     col = (pos-1)%2
     last_row = row == len(tapers)//2 - 1
 
-    taper = get_taper(spec, N, L)['taper']
+    taper, _ = get_taper(spec, N, L)
 
     output = fft_resample(input, taper, M)
     output /= np.max(np.abs(output))
