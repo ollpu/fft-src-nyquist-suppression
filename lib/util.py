@@ -5,7 +5,7 @@ def amp2db(S):
     return librosa.amplitude_to_db(np.abs(S), amin=1e-15, top_db=500)
 
 def pow2db(S):
-    return librosa.power_to_db(np.abs(S), amin=1e-15, top_db=500)
+    return librosa.power_to_db(np.abs(S), amin=1e-30, top_db=500)
 
 def db2amp(d):
     return 10**(np.array(d)/20)

@@ -82,8 +82,9 @@ def get_taper(taper_spec, M, L):
 
     meta = {}
     if taper_spec != 'box':
-        taper, meta = get_window(taper_spec, M, L)
-        S[start_pos:end_pos] = np.cumsum(taper)[::-1]
+        window, meta = get_window(taper_spec, M, L)
+        meta['window'] = window
+        S[start_pos:end_pos] = np.cumsum(window)[::-1]
 
     S[(M+2)//2:] = S[(M-1)//2:0:-1]
     return S, meta

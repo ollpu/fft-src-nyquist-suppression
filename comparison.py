@@ -1,23 +1,23 @@
 # %%
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
-import sounddevice as sd
+import scipy.signal
 
 from lib.util import *
 from lib.taper import get_taper
 from lib.resamp import fft_resample
 
-plot = True
+plot = False
 
 
 # %%
 
 conversions = [
-    # (44100, 96000, 1),
+    (44100, 96000, 1),
     # (44100, 96000, 10),
-    # (44100, 96000, 100),
+    (44100, 96000, 100),
 
-    (96000, 44100, 1),
+    # (96000, 44100, 1),
     # (96000, 44100, 10),
     # (96000, 44100, 100),
 ]
@@ -25,35 +25,110 @@ conversions = [
 L_prop = 0.05 # of smaller Nyquist
 
 tapers = {
-    'Box': 'box',
+    # 'Box': 'box',
     'Cosine': 'cosine',
     'Hann': 'hann',
     'Blackman': 'blackman',
-    'Dolph–Chebyshev': ('chebwin', 90),
-    'DDC alpha=1/2': ('ddc', 145, 0.5),
-    'DDC optimal': ('ddc', 145),
+    'Dolph–Chebyshev': ('chebwin', 90.5),
+    'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
+    'DDC optimal': ('ddc', 144),
 }
 # %%
 
 target_dB = -144
-def time_to_dB(ir, Fs):
-    attenuated = np.abs(ir) < db2amp(target_dB)
+columns = {
+    "name": "Window",
+    "time_to_dB": fr"T{-target_dB}\,(ms)",
+    "main_lobe_width": r"MLW\,(ms)",
+    "peak_sidelobe_level": r"PSL\,(dB)",
+    "integrated_sidelobe_level": r"ISL\,(dB)",
+}
+
+def fmt_row(row):
+    return " & ".join(row[col] for col in columns.keys()) + " \\\\\n"
+
+def fmt_table(table):
+    colspec = "l" + (len(columns)-1) * "c"
+    result = fr"\begin{{tabular}}{{{colspec}}}" + "\n\\toprule\n"
+    result += fmt_row({k: fr"\textbf{{{v}}}" for k, v in columns.items()})
+    result += "\\midrule\n"
+    for row in table:
+        result += fmt_row(row)
+    result += "\\bottomrule\n\\end{tabular}\n"
+    return result
+
+
+
+def peak_magnitude(table_row, ir):
+    print(f"- Peak magnitude:\t\t {amp2db(np.max(np.abs(ir))):.2f} dB")
+
+def time_to_dB(table_row, ir, Fs):
+    tolerance = 0.1
+    attenuated = np.abs(ir) < db2amp(target_dB + tolerance)
     left = np.argmin(attenuated)
     right = len(ir) - np.argmin(attenuated[::-1])
     width_ms = 1000 * (right-left) / Fs
 
-    print("Time to decay to", target_dB, "dB:\t", width_ms, "ms")
+    print(f"- Time above {target_dB} dB:\t\t {width_ms:.2f} ms")
+
+    table_row["time_to_dB"] = f"${width_ms:.2f}$"
+    if left == 0:
+        table_row["time_to_dB"] = "--"
+        left = None
+        right = None
 
     return left, right, width_ms
+
+def main_lobe_width(window, Fs, samples):
+    buf = np.zeros(samples)
+    buf[:len(window)] = window
+    buf = amp2db(np.fft.fft(buf))
+    peaks, _ = scipy.signal.find_peaks(-buf, distance=3)
+
+    width = 2 * peaks[0]
+    width_ms = 1000 * width / Fs
+
+    print(f"- Main lobe width:\t\t {width_ms:.2f} ms")
+
+    table_row["main_lobe_width"] = f"${width_ms:.2f}$"
+
+    return width
+
+def peak_sidelobe_level(table_row, ir, left, right):
+    idx = np.arange(len(ir))
+    mask = (idx < left) | (idx > right)
+
+    psl = amp2db(np.max(ir[mask]))
+    print(f"- Peak sidelobe level:\t\t {psl:.2f} dB")
+
+    table_row["peak_sidelobe_level"] = f"${psl:.2f}$"
+
+    return psl
+
+def integrated_sidelobe_level(table_row, ir, left, right):
+    ir_s = ir**2
+    idx = np.arange(len(ir))
+    mask = (idx < left) | (idx > right)
+
+    isl = pow2db(np.sum(ir_s[mask]) / np.sum(ir_s[~mask]))
+    print(f"- Integrated sidelobe level:\t {isl:.2f} dB")
+
+
+    table_row["integrated_sidelobe_level"] = f"${isl:.2f}$"
+
+    return isl
 
 # Other analyses:
 # - Main lobe width (how to find this?)
 # - Energy outside "time_to_dB" width
 # - Energy outside main lobe (integrated sidelobe level)
-
+# - Maximum sidelobe level
+# - Sidelobe falloff ...?
 
 
 # %%
+
+fract_offset = 1
 
 for Fs_in, Fs_out, duration in conversions:
     N = int(Fs_in * duration)
@@ -64,22 +139,41 @@ for Fs_in, Fs_out, duration in conversions:
     print(("Upsample" if M > N else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s")
     print("==========")
 
+    table = []
+
     for name, spec in tapers.items():
         print("\nTaper:", name)
 
+        table_row = {"name": name}
+        table.append(table_row)
+
         l = int(L_prop * smaller / 2)
         taper, meta = get_taper(spec, smaller, l)
+        window = meta['window']
+        del meta['window']
 
-        print("Meta:", meta, "\n")
+        print(f"Meta: L={l}, fract_offset={fract_offset}, {meta}\n")
 
-        input = np.zeros(N)
-        # TODO: how should we choose the exact impulse position?
-        input[N // 2 + 3] = 1
+        # Calibrate peak magnitude by having an impulse at 0, where we know there is no fractional offset
+        cal_input = np.zeros(N)
+        cal_input[0] = 1
+        cal_output = fft_resample(cal_input, taper, M)
+        norm_factor = 1 / cal_output[0]
 
-        output = fft_resample(input, taper, M)
-        output /= np.sqrt(Fs_out / Fs_in)
+        test_input = np.zeros(N)
+        test_input[N // 2 + fract_offset] = 1
 
-        left, right, width_ms = time_to_dB(output, Fs_out)
+        output = norm_factor * fft_resample(test_input, taper, M)
+
+        peak_magnitude(table_row, output)
+        time_to_dB(table_row, output, Fs_out)
+        mlw = main_lobe_width(window, Fs_out, M)
+        peak_pos = np.argmax(output)
+        left = peak_pos - mlw/2
+        right = peak_pos + mlw/2
+        peak_sidelobe_level(table_row, output, left, right)
+        integrated_sidelobe_level(table_row, output, left, right)
+
 
         if plot:
             plt.plot(amp2db(output))
@@ -90,3 +184,6 @@ for Fs_in, Fs_out, duration in conversions:
             plt.xlim(M//2-2000, M//2+2000)
             plt.ylim(-300, 5)
             plt.show()
+
+    print()
+    print(fmt_table(table))
