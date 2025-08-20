@@ -69,16 +69,16 @@ if play:
 
 # %% Plot
 
-%matplotlib osx
-plt.close()
+# %matplotlib osx
+# plt.close()
 
 time_in = np.arange(input_len) / Fs_in
 time_out = np.arange(output_len) / Fs_out
 
-start = 1.5
-stop = 5.5
-mask_in = (time_in >= start-0.05) & (time_in < stop+0.05)
-mask_out = (time_out >= start-0.05) & (time_out < stop+0.05)
+start = 2.0
+stop = 6.0
+mask_in = (time_in >= start) & (time_in < stop)
+mask_out = (time_out >= start) & (time_out < stop)
 
 fig = plt.figure(figsize=(5, 5.625))
 fig.set_linewidth(1)
