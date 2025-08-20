@@ -1,5 +1,5 @@
 # %%
-from matplotlib.gridspec import GridSpec
+import re
 import matplotlib.pyplot as plt
 import scipy.signal
 
@@ -13,9 +13,9 @@ plot = False
 # %%
 
 conversions = [
-    (44100, 96000, 1),
+    (44100, 192000, 1),
     # (44100, 96000, 10),
-    (44100, 96000, 100),
+    (44100, 192000, 100),
 
     # (96000, 44100, 1),
     # (96000, 44100, 10),
@@ -29,7 +29,7 @@ tapers = {
     'Cosine': 'cosine',
     'Hann': 'hann',
     'Blackman': 'blackman',
-    'Dolph–Chebyshev': ('chebwin', 90.5),
+    'Dolph–Chebyshev': ('chebwin', 91),
     'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
     'DDC optimal': ('ddc', 144),
 }
@@ -44,26 +44,40 @@ columns = {
     "integrated_sidelobe_level": r"ISL\,(dB)",
 }
 
+def highlight_cell(name, key):
+    # TODO
+    # if name == "DDC optimal" and key in ["time_to_dB", "main_lobe_width"]:
+    #     return True
+    # if name == "Dolph–Chebyshev" and key == "integrated_sidelobe_level":
+    #     return True
+    return False
+
+def bold(text):
+    if res := re.fullmatch(r"\$(.*)\$", text):
+        return fr"$\mathbf{{{res[1]}}}$"
+    else:
+        return fr"\textbf{{{text}}}"
+
 def fmt_row(row):
-    return " & ".join(row[col] for col in columns.keys()) + " \\\\\n"
+    return " & ".join((bold(row[col]) if highlight_cell(row["name"], col) else row[col]) for col in columns.keys()) + " \\\\\n"
 
 def fmt_table(table):
     colspec = "l" + (len(columns)-1) * "c"
     result = fr"\begin{{tabular}}{{{colspec}}}" + "\n\\toprule\n"
-    result += fmt_row({k: fr"\textbf{{{v}}}" for k, v in columns.items()})
+    result += fmt_row({k: bold(v) for k, v in columns.items()})
     result += "\\midrule\n"
     for row in table:
         result += fmt_row(row)
     result += "\\bottomrule\n\\end{tabular}\n"
     return result
 
-
+# Analyses
 
 def peak_magnitude(table_row, ir):
     print(f"- Peak magnitude:\t\t {amp2db(np.max(np.abs(ir))):.2f} dB")
 
 def time_to_dB(table_row, ir, Fs):
-    tolerance = 0.1
+    tolerance = 0.05
     attenuated = np.abs(ir) < db2amp(target_dB + tolerance)
     left = np.argmin(attenuated)
     right = len(ir) - np.argmin(attenuated[::-1])
@@ -118,17 +132,10 @@ def integrated_sidelobe_level(table_row, ir, left, right):
 
     return isl
 
-# Other analyses:
-# - Main lobe width (how to find this?)
-# - Energy outside "time_to_dB" width
-# - Energy outside main lobe (integrated sidelobe level)
-# - Maximum sidelobe level
-# - Sidelobe falloff ...?
-
 
 # %%
 
-fract_offset = 1
+fract_offset = 0
 
 for Fs_in, Fs_out, duration in conversions:
     N = int(Fs_in * duration)
@@ -154,16 +161,23 @@ for Fs_in, Fs_out, duration in conversions:
 
         print(f"Meta: L={l}, fract_offset={fract_offset}, {meta}\n")
 
-        # Calibrate peak magnitude by having an impulse at 0, where we know there is no fractional offset
-        cal_input = np.zeros(N)
-        cal_input[0] = 1
-        cal_output = fft_resample(cal_input, taper, M)
-        norm_factor = 1 / cal_output[0]
 
         test_input = np.zeros(N)
+        # THe lengths are all even, so midpoint should have no fractional offset
         test_input[N // 2 + fract_offset] = 1
 
-        output = norm_factor * fft_resample(test_input, taper, M)
+        output = fft_resample(test_input, taper, M)
+
+        if fract_offset != 0:
+            # Calibrate peak magnitude by having an impulse at 0, where we know there is no fractional offset
+            cal_input = np.zeros(N)
+            cal_input[0] = 1
+            cal_output = fft_resample(cal_input, taper, M)
+            norm_factor = 1 / cal_output[0]
+        else:
+            norm_factor = 1 / output[M // 2]
+
+        output *= norm_factor
 
         peak_magnitude(table_row, output)
         time_to_dB(table_row, output, Fs_out)
