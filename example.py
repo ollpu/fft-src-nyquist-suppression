@@ -83,9 +83,9 @@ mask_out = (time_out >= start) & (time_out < stop)
 fig = plt.figure(figsize=(5, 5.625))
 fig.set_linewidth(1)
 
-gs = GridSpec(4, 1, height_ratios=[1, 2, 2, 2], left=0.1, bottom=0.12, right=0.97, top=0.98, hspace=0.4)
+gs = GridSpec(2, 3, height_ratios=[1, 2], left=0.1, bottom=0.12, right=0.97, top=0.98, hspace=0.4)
 
-ax1 = plt.subplot(gs[0])
+ax1 = plt.subplot(gs[0, :])
 
 decimate = 100
 chunks = input.reshape((input_len//decimate, decimate))
@@ -99,19 +99,19 @@ plt.axvspan(start, stop, -0.1, 1.1, color=(0, 0, 0, 0.12), linewidth=1, ec='blac
 ax1.set_title('(a)', y=0, pad=-17)
 ax1.tick_params(pad=2)
 
-ax2 = plt.subplot(gs[1])
+ax2 = plt.subplot(gs[1, 0])
 plt.plot(time_in[mask_in], input[mask_in])
 plt.xlim(start, stop)
 plt.ylim(-0.01, 0.01)
 plt.setp(ax2.get_xticklabels(), visible=False)
 ax2.set_title('(b)', y=0, pad=-17)
 
-ax3 = plt.subplot(gs[2], sharex=ax2, sharey=ax2)
+ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
 plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_xticklabels(), visible=False)
 ax3.set_title('(c)', y=0, pad=-17)
 
-ax4 = plt.subplot(gs[3], sharex=ax2, sharey=ax2)
+ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
 plt.plot(time_out[mask_out], output_tapered[mask_out])
 ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_title('(d)', y=0, pad=-42)
