@@ -12,7 +12,7 @@ plt.rcParams["mathtext.fontset"] = 'cm'
 plt.rcParams['pdf.fonttype'] = 42
 
 # WARNING: Loud!
-play = False
+play = True
 
 np.random.seed(4)
 
@@ -76,14 +76,14 @@ time_in = np.arange(input_len) / Fs_in
 time_out = np.arange(output_len) / Fs_out
 
 start = 2.0
-stop = 6.0
+stop = 4.0
 mask_in = (time_in >= start) & (time_in < stop)
 mask_out = (time_out >= start) & (time_out < stop)
 
-fig = plt.figure(figsize=(5, 5.625))
+fig = plt.figure(figsize=(5, 2.75))
 fig.set_linewidth(1)
 
-gs = GridSpec(2, 3, height_ratios=[1, 2], left=0.1, bottom=0.12, right=0.97, top=0.98, hspace=0.4)
+gs = GridSpec(2, 3, height_ratios=[2, 5], left=0.1, bottom=0.24, right=0.97, top=0.97, hspace=0.45)
 
 ax1 = plt.subplot(gs[0, :])
 
@@ -95,7 +95,7 @@ hi = np.max(chunks, axis=-1)
 plt.fill_between(time_in[::decimate], low, hi, linewidth=1, ec='face')
 plt.xlim(0, input_len / Fs_in)
 plt.ylim(-1, 1)
-plt.axvspan(start, stop, -0.1, 1.1, color=(0, 0, 0, 0.12), linewidth=1, ec='black', ls='--')
+plt.axvspan(start-0.2, stop+0.2, 0.45, 0.55, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
 ax1.set_title('(a)', y=0, pad=-17)
 ax1.tick_params(pad=2)
 
@@ -103,16 +103,19 @@ ax2 = plt.subplot(gs[1, 0])
 plt.plot(time_in[mask_in], input[mask_in])
 plt.xlim(start, stop)
 plt.ylim(-0.01, 0.01)
-plt.setp(ax2.get_xticklabels(), visible=False)
-ax2.set_title('(b)', y=0, pad=-17)
+ax2.set_xlabel("Time (s)", labelpad=2)
+ax2.set_title('(b)', y=0, pad=-42)
+ax2.locator_params(axis='y', nbins=3)
 
 ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
 plt.plot(time_out[mask_out], output_naive[mask_out])
-plt.setp(ax3.get_xticklabels(), visible=False)
-ax3.set_title('(c)', y=0, pad=-17)
+plt.setp(ax3.get_yticklabels(), visible=False)
+ax3.set_xlabel("Time (s)", labelpad=2)
+ax3.set_title('(c)', y=0, pad=-42)
 
 ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
 plt.plot(time_out[mask_out], output_tapered[mask_out])
+plt.setp(ax4.get_yticklabels(), visible=False)
 ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_title('(d)', y=0, pad=-42)
 

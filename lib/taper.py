@@ -8,34 +8,33 @@ import scipy.signal
 def get_window(win_spec, M, L):
     """M is total length of fft buffer (only used by DDC), L is length of window"""
     match win_spec:
-        case ('ultra', sidelobes_dB, alpha):
-            sidelobes_R = db2amp(sidelobes_dB)
+        # case ('ultra', sidelobes_dB, alpha):
+        #     sidelobes_R = db2amp(sidelobes_dB)
 
-            N = L
-            add = 0
-            if N%2 == 0:
-                N -= 1
-                add = 1
-            d = np.cosh(1/(N-1)* np.acosh(sidelobes_R))
-            phi = np.arange(N)*np.pi/N
-            z = d*np.cos(phi)
-            c = [2*alpha*z, -alpha + 2*alpha*(1+alpha)*(z**2)]
+        #     order = L
+        #     add = 0
+        #     if order%2 == 0:
+        #         order -= 1
+        #         add = 1
+        #     d = np.cosh(1/(order-1)* np.acosh(sidelobes_R))
+        #     phi = np.arange(order)*np.pi/order
+        #     z = d*np.cos(phi)
+        #     c = [2*alpha*z, -alpha + 2*alpha*(1+alpha)*(z**2)]
 
-            for k in range(3, N):
-                c.append(2*(k+alpha-1)/k*z*c[-1] - (k+2*alpha-2)/k*c[-2])
+        #     for k in range(3, order):
+        #         c.append(2*(k+alpha-1)/k*z*c[-1] - (k+2*alpha-2)/k*c[-2])
 
-            u = c[-1]
+        #     u = c[-1]
 
-            win = np.fft.fftshift(np.real(np.fft.ifft(u)))
-            win /= np.sum(win)
-            win = np.pad(win, (0, add))
-            return win, { 'R': sidelobes_R, 'd': d, 'order': N-1 }
+        #     win = np.fft.fftshift(np.real(np.fft.ifft(u)))
+        #     win /= np.sum(win)
+        #     win = np.pad(win, (0, add))
+        #     return win, { 'R': sidelobes_R, 'd': d, 'order': order-1 }
 
         case ('ddc', sidelobes_dB, *rest):
             sidelobes_R = db2amp(sidelobes_dB)
 
-            N = L-1
-            if N%2: N -= 1
+            order = L-1
 
             set_alpha = next(iter(rest), None)
 
@@ -43,8 +42,8 @@ def get_window(win_spec, M, L):
                 alpha = set_alpha if set_alpha else (1 + np.sqrt(y**2-1)/y)/2
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore")
-                    Q = alpha*np.cosh(N*np.acosh(y)) - (1-alpha)*np.cosh((N-2)*np.acosh(y))
-                return (M - L) * Q
+                    Q = alpha*np.cosh(order*np.acosh(y)) - (1-alpha)*np.cosh((order-2)*np.acosh(y))
+                    return (M - L) * Q
 
             d = binary_search(DQ, (1, 2), sidelobes_R)
 
@@ -53,23 +52,26 @@ def get_window(win_spec, M, L):
             phi = np.arange(L)*np.pi/L
             z = d*np.cos(phi)
 
-            w = np.zeros(L)
+            w = np.zeros(L, dtype=complex)
             zm = np.abs(z) <= 1
-            w[zm] = alpha*np.cos(N*np.acos(z[zm])) - (1-alpha)*np.cos((N-2)*np.acos(z[zm]))
+            w[zm] = alpha*np.cos(order*np.acos(z[zm])) - (1-alpha)*np.cos((order-2)*np.acos(z[zm]))
             zm = z > 1
-            w[zm] = alpha*np.cosh(N*np.acosh(z[zm])) - (1-alpha)*np.cosh((N-2)*np.acosh(z[zm]))
+            w[zm] = alpha*np.cosh(order*np.acosh(z[zm])) - (1-alpha)*np.cosh((order-2)*np.acosh(z[zm]))
             zm = z < -1
-            w[zm] = (-1)**N * (alpha*np.cosh(N*np.acosh(-z[zm])) - (1-alpha)*np.cosh((N-2)*np.acosh(-z[zm])))
+            w[zm] = (-1)**order * (alpha*np.cosh(order*np.acosh(-z[zm])) - (1-alpha)*np.cosh((order-2)*np.acosh(-z[zm])))
 
-            win = np.fft.fftshift(np.real(np.fft.ifft(w)))
-            win /= np.sum(win)
+            if L%2 == 0:
+                w *= np.exp(1j * phi)
 
-            return win, { 'R': sidelobes_R, 'd': d, 'alpha': alpha, 'order': N }
+            W = np.fft.fftshift(np.real(np.fft.ifft(w)))
+            W /= np.sum(W)
+
+            return W, { 'R': sidelobes_R, 'd': d, 'alpha': alpha, 'order': order }
 
         case _:
-            win = scipy.signal.windows.get_window(win_spec, L, fftbins=False)
-            win /= np.sum(win)
-            return win, {}
+            W = scipy.signal.windows.get_window(win_spec, L, fftbins=False)
+            W /= np.sum(W)
+            return W, {}
 
 def get_taper(taper_spec, M, L):
     S = np.zeros(M)

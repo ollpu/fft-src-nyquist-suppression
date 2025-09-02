@@ -46,10 +46,10 @@ columns = {
 
 def highlight_cell(name, key):
     # TODO
-    # if name == "DDC optimal" and key in ["time_to_dB", "main_lobe_width"]:
-    #     return True
-    # if name == "Dolph–Chebyshev" and key == "integrated_sidelobe_level":
-    #     return True
+    if name == "DDC optimal" and key in ["time_to_dB", "main_lobe_width"]:
+        return True
+    if name == "Dolph–Chebyshev" and key == "integrated_sidelobe_level":
+        return True
     return False
 
 def bold(text):

@@ -10,42 +10,28 @@ plt.rcParams["mathtext.fontset"] = 'cm'
 plt.rcParams['pdf.fonttype']=42
 
 N = 44100
-M = 96000
-Fs_out = 96000
-L = 500
+M = 192000
+time_s = 1
+L = 1000
 
 tapers = {
     'Box': 'box',
     'Cosine': 'cosine',
     'Hann': 'hann',
     'Blackman': 'blackman',
-    'Dolph–Chebyshev': ('chebwin', 63),
+    'Dolph–Chebyshev': ('chebwin', 71),
     'DDC $\\alpha=1/2$': ('ddc', 120, 0.5),
     'DDC optimal': ('ddc', 120),
 }
 
 
 # %%
-
-%matplotlib osx
-
-for name, spec in tapers.items():
-    taper, _ = get_taper(spec, N, L)
-    if 'win' not in taper: continue
-
-    plt.plot(taper, label=name)
-
-# plt.xlim(M/2-1.2*L, M/2+0.2*L)
-plt.legend(loc='upper right')
-plt.show()
-
-# %%
 %matplotlib inline
 
 input = np.zeros(N)
 input[N//2] = 1
-time = (np.arange(M) - M//2) / Fs_out * 1000
-mask = np.abs(time) < 45
+time = (np.arange(M) - M//2) / M * time_s * 1000
+mask = np.abs(time) < 22
 
 box_taper, _ = get_taper('box', N, L)
 box_output = fft_resample(input, box_taper, M)
@@ -72,12 +58,12 @@ for pos, (name, spec) in enumerate(tapers.items()):
     # ax.fill_between(time[mask], -300, amp2db(box_output[mask]), linewidth=1, color='#ccc', ec='#ccc')
     ax.plot(time[mask], amp2db(output[mask]), label=name, linewidth=1, c='tab:blue')
 
-    # ax.axhline(-120)
+    # ax.axhline(-100)
     # ax.axhline(0)
 
     # ax.legend(loc='upper right')
-    ax.set_xlim(-42, 42)
-    ax.set_ylim(-175, 5)
+    ax.set_xlim(-21, 21)
+    ax.set_ylim(-165, 5)
     ax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='y')
     ax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='x')
 
