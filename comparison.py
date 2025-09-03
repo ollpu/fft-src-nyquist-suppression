@@ -15,7 +15,7 @@ plot = False
 conversions = [
     (44100, 192000, 1),
     # (44100, 96000, 10),
-    (44100, 192000, 100),
+    # (44100, 192000, 100),
 
     # (96000, 44100, 1),
     # (96000, 44100, 10),
@@ -29,18 +29,17 @@ tapers = {
     'Cosine': 'cosine',
     'Hann': 'hann',
     'Blackman': 'blackman',
-    'Dolph–Chebyshev': ('chebwin', 91),
     'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
     'DDC optimal': ('ddc', 144),
+    'Dolph--Cheb.': ('chebwin', 90.76),
 }
 # %%
 
 target_dB = -144
 columns = {
-    "name": "Window",
+    "name_and_psl": r"Window (PSL,\,dB)",
     "time_to_dB": fr"T{-target_dB}\,(ms)",
     "main_lobe_width": r"MLW\,(ms)",
-    "peak_sidelobe_level": r"PSL\,(dB)",
     "integrated_sidelobe_level": r"ISL\,(dB)",
 }
 
@@ -48,7 +47,7 @@ def highlight_cell(name, key):
     # TODO
     if name == "DDC optimal" and key in ["time_to_dB", "main_lobe_width"]:
         return True
-    if name == "Dolph–Chebyshev" and key == "integrated_sidelobe_level":
+    if name == "Dolph--Cheb." and key == "integrated_sidelobe_level":
         return True
     return False
 
@@ -58,13 +57,13 @@ def bold(text):
     else:
         return fr"\textbf{{{text}}}"
 
-def fmt_row(row):
-    return " & ".join((bold(row[col]) if highlight_cell(row["name"], col) else row[col]) for col in columns.keys()) + " \\\\\n"
+def fmt_row(row, header=False):
+    return " & ".join((bold(row[col]) if header or highlight_cell(row["name"], col) else row[col]) for col in columns.keys()) + " \\\\\n"
 
 def fmt_table(table):
     colspec = "l" + (len(columns)-1) * "c"
     result = fr"\begin{{tabular}}{{{colspec}}}" + "\n\\toprule\n"
-    result += fmt_row({k: bold(v) for k, v in columns.items()})
+    result += fmt_row(columns, True)
     result += "\\midrule\n"
     for row in table:
         result += fmt_row(row)
@@ -116,6 +115,7 @@ def peak_sidelobe_level(table_row, ir, left, right):
     print(f"- Peak sidelobe level:\t\t {psl:.2f} dB")
 
     table_row["peak_sidelobe_level"] = f"${psl:.2f}$"
+    table_row["name_and_psl"] = f"{table_row["name"]} ({table_row["peak_sidelobe_level"]})"
 
     return psl
 
