@@ -7,12 +7,10 @@ from lib.util import *
 from lib.taper import get_taper
 from lib.resamp import fft_resample
 
-plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams["mathtext.fontset"] = 'cm'
-plt.rcParams['pdf.fonttype'] = 42
+plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
-play = True
+play = False
 
 np.random.seed(4)
 
@@ -80,7 +78,7 @@ stop = 4.0
 mask_in = (time_in >= start) & (time_in < stop)
 mask_out = (time_out >= start) & (time_out < stop)
 
-fig = plt.figure(figsize=(5, 2.75))
+fig = plt.figure(figsize=(3.5, 2))
 fig.set_linewidth(1)
 
 gs = GridSpec(2, 3, height_ratios=[2, 5], left=0.1, bottom=0.24, right=0.97, top=0.97, hspace=0.45)
