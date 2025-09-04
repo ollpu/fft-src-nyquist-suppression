@@ -27,4 +27,4 @@ def fft_resample(input, taper, output_len):
 
         output_f *= taper
 
-    return np.sqrt(output_len / len(input)) * np.real(np.fft.ifft(output_f))
+    return ratio * np.real(np.fft.ifft(output_f))
