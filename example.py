@@ -14,10 +14,10 @@ play = False
 
 np.random.seed(4)
 
-Fs_in = 10000
+Fs_in = 20000
 Fs_out = 48000
 
-input_len = 500_000
+input_len = 1_000_000
 output_len = int(Fs_out / Fs_in * input_len)
 L = int(0.05 * input_len / 2)
 print(output_len, L)
@@ -73,15 +73,15 @@ time_out = np.arange(output_len) / Fs_out
 
 start = 2.0
 stop = 4.0
-mask_in = (time_in >= start) & (time_in < stop)
-mask_out = (time_out >= start) & (time_out < stop)
+pad = 0.05
+mask_in = (time_in >= start - pad) & (time_in < stop + pad)
+mask_out = (time_out >= start - pad) & (time_out < stop + pad)
 
 fig = plt.figure(figsize=(3.5, 2))
-fig.set_linewidth(1)
 
-gs = GridSpec(2, 3, height_ratios=[2, 5], left=0.1, bottom=0.24, right=0.97, top=0.97, hspace=0.45)
+gs = GridSpec(2, 4, height_ratios=[2, 5], width_ratios=[1, 1, 1, 0.1], left=0.1, bottom=0.24, right=0.91, top=0.97, hspace=0.45)
 
-ax1 = plt.subplot(gs[0, :])
+ax1 = plt.subplot(gs[0, :3])
 
 decimate = 100
 chunks = input.reshape((input_len//decimate, decimate))
@@ -91,30 +91,54 @@ hi = np.max(chunks, axis=-1)
 plt.fill_between(time_in[::decimate], low, hi, linewidth=1, ec='face')
 plt.xlim(0, input_len / Fs_in)
 plt.ylim(-1, 1)
-plt.axvspan(start-0.2, stop+0.2, 0.45, 0.55, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
-ax1.set_title('(a)', y=0, pad=-13)
+plt.axvspan(start-0.2, stop+0.2, 0.42, 0.58, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
+ax1.set_title('(a)', y=0, pad=-12)
 ax1.tick_params(pad=2)
 
-ax2 = plt.subplot(gs[1, 0])
-plt.plot(time_in[mask_in], input[mask_in])
-plt.xlim(start, stop)
-plt.ylim(-0.01, 0.01)
-ax2.set_xlabel("Time (s)", labelpad=2)
-ax2.set_title('(b)', y=0, pad=-31)
-ax2.locator_params(axis='y', nbins=3)
+def do_stft(sig, **params):
+    return librosa.amplitude_to_db(np.abs(librosa.stft(sig, window=('chebwin', 150), center=False, **params)), ref=np.max, amin=1e-10, top_db=150)
 
-ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
-plt.plot(time_out[mask_out], output_naive[mask_out])
+ax2 = plt.subplot(gs[1, 0])
+stft = do_stft(input[mask_in], n_fft=1024)
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=1024//4) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_axis='linear')
+# plt.plot(time_in[mask_in], input[mask_in])
+# plt.xlim(start, stop)
+# plt.ylim(-0.01, 0.01)
+ax2.set_xlabel("Time (s)", labelpad=2)
+ax2.set_ylabel("Frequency (kHz)", labelpad=2)
+ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
+ax2.set_title('(b)', y=0, pad=-31)
+ax2.locator_params(axis='x', nbins=3)
+# ax2.locator_params(axis='y', nbins=3)
+ax2.set_ylim(0, Fs_out/2)
+
+ax3 = plt.subplot(gs[1, 1])
+stft = do_stft(output_naive[mask_out])
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear')
+# plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_yticklabels(), visible=False)
 ax3.set_xlabel("Time (s)", labelpad=2)
+ax3.set_ylabel("")
+ax3.locator_params(axis='x', nbins=3)
 ax3.set_title('(c)', y=0, pad=-31)
 
-ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
-plt.plot(time_out[mask_out], output_tapered[mask_out])
+ax4 = plt.subplot(gs[1, 2])
+stft = do_stft(output_tapered[mask_out])
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear')
+# plt.plot(time_out[mask_out], output_tapered[mask_out])
 plt.setp(ax4.get_yticklabels(), visible=False)
+ax4.locator_params(axis='x', nbins=3)
 ax4.set_xlabel("Time (s)", labelpad=2)
+ax4.set_ylabel("")
 ax4.set_title('(d)', y=0, pad=-31)
 
+ax5 = plt.subplot(gs[1, 3])
+fig.colorbar(img, cax=ax5)
+ax5.yaxis.set_major_formatter(lambda x, p: (str(int(x)) if x != 0 else "0 dB"))
+# ax5.set_ylabel("dB")
 
 plt.show()
 
