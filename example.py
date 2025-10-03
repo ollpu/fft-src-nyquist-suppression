@@ -1,6 +1,7 @@
 # %%
-from matplotlib.gridspec import GridSpec
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 import sounddevice as sd
 
 from lib.util import *
@@ -10,14 +11,14 @@ from lib.resamp import fft_resample
 plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
-play = False
+play = True
 
 np.random.seed(4)
 
-Fs_in = 20000
+Fs_in = 10000
 Fs_out = 48000
 
-input_len = 1_000_000
+input_len = 500_000
 output_len = int(Fs_out / Fs_in * input_len)
 L = int(0.05 * input_len / 2)
 print(output_len, L)
@@ -95,39 +96,49 @@ plt.axvspan(start-0.2, stop+0.2, 0.42, 0.58, color=(0, 0, 0, 0.12), linewidth=2,
 ax1.set_title('(a)', y=0, pad=-12)
 ax1.tick_params(pad=2)
 
-def do_stft(sig, **params):
+def spectrogram(sig, **params):
     return librosa.amplitude_to_db(np.abs(librosa.stft(sig, window=('chebwin', 150), center=False, **params)), ref=np.max, amin=1e-10, top_db=150)
 
 ax2 = plt.subplot(gs[1, 0])
-stft = do_stft(input[mask_in], n_fft=1024)
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=1024//4) + start - pad/2
-img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_axis='linear')
+stft = spectrogram(input[mask_in], n_fft=512)
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=512//4) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_in[mask_in], input[mask_in])
 # plt.xlim(start, stop)
 # plt.ylim(-0.01, 0.01)
 ax2.set_xlabel("Time (s)", labelpad=2)
 ax2.set_ylabel("Frequency (kHz)", labelpad=2)
-ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
+ax2.locator_params('y', min_n_ticks=5)
 ax2.set_title('(b)', y=0, pad=-31)
 ax2.locator_params(axis='x', nbins=3)
 # ax2.locator_params(axis='y', nbins=3)
+xlim = (start-0.02, stop+0.02)
+ax2.set_xlim(xlim)
 ax2.set_ylim(0, Fs_out/2)
 
-ax3 = plt.subplot(gs[1, 1])
-stft = do_stft(output_naive[mask_out])
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out) + start - pad/2
-img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear')
+# Cross out area beyound Nyquist
+ax2.axhspan(Fs_in/2, Fs_out/2, color='lightgray', lw=0)
+ax2.plot([xlim[0], xlim[1]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
+ax2.plot([xlim[1], xlim[0]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
+
+
+ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
+stft = spectrogram(output_naive[mask_out], n_fft=1024)
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_yticklabels(), visible=False)
 ax3.set_xlabel("Time (s)", labelpad=2)
 ax3.set_ylabel("")
-ax3.locator_params(axis='x', nbins=3)
+# ax3.locator_params(axis='x', nbins=3)
 ax3.set_title('(c)', y=0, pad=-31)
 
-ax4 = plt.subplot(gs[1, 2])
-stft = do_stft(output_tapered[mask_out])
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out) + start - pad/2
-img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear')
+ax3.annotate("", xy=(3.7, Fs_in/2), xytext=(3.4, 12000), arrowprops=dict(fc='white', arrowstyle="simple,tail_width=0.3,head_width=0.7,head_length=0.7"))
+
+ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
+stft = spectrogram(output_tapered[mask_out], n_fft=1024)
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start - pad/2
+img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_out[mask_out], output_tapered[mask_out])
 plt.setp(ax4.get_yticklabels(), visible=False)
 ax4.locator_params(axis='x', nbins=3)
@@ -135,11 +146,18 @@ ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_ylabel("")
 ax4.set_title('(d)', y=0, pad=-31)
 
+ax4.annotate("", xy=(3.7, Fs_in/2), xytext=(3.4, 12000), arrowprops=dict(fc='white', arrowstyle="simple,tail_width=0.3,head_width=0.7,head_length=0.7"))
+
+
+ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
+
 ax5 = plt.subplot(gs[1, 3])
 fig.colorbar(img, cax=ax5)
 ax5.yaxis.set_major_formatter(lambda x, p: (str(int(x)) if x != 0 else "0 dB"))
 # ax5.set_ylabel("dB")
 
+
 plt.show()
+
 
 fig.savefig("example.pdf")
