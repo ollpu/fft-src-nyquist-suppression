@@ -92,7 +92,7 @@ hi = np.max(chunks, axis=-1)
 plt.fill_between(time_in[::decimate], low, hi, linewidth=1, ec='face')
 plt.xlim(0, input_len / Fs_in)
 plt.ylim(-1, 1)
-plt.axvspan(start-0.2, stop+0.2, 0.42, 0.58, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
+plt.axvspan(start-0.4, stop+0.2, -0.1, 1.1, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
 ax1.set_title('(a)', y=0, pad=-12)
 ax1.tick_params(pad=2)
 
