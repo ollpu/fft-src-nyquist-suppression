@@ -11,7 +11,7 @@ from lib.resamp import fft_resample
 plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
-play = True
+play = False
 
 np.random.seed(4)
 
@@ -20,7 +20,7 @@ Fs_out = 48000
 
 input_len = 500_000
 output_len = int(Fs_out / Fs_in * input_len)
-L = int(0.05 * input_len / 2)
+L = int(0.10 * input_len / 2)
 print(output_len, L)
 
 
