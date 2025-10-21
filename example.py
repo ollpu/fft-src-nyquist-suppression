@@ -84,15 +84,16 @@ gs = GridSpec(2, 4, height_ratios=[2, 5], width_ratios=[1, 1, 1, 0.1], left=0.1,
 
 ax1 = plt.subplot(gs[0, :3])
 
+input_half = input[:input_len//2]
 decimate = 100
-chunks = input.reshape((input_len//decimate, decimate))
+chunks = input_half.reshape((len(input_half)//decimate, decimate))
 low = np.min(chunks, axis=-1)
 hi = np.max(chunks, axis=-1)
 
-plt.fill_between(time_in[::decimate], low, hi, linewidth=1, ec='face')
-plt.xlim(0, input_len / Fs_in)
+plt.fill_between(time_in[:input_len//2:decimate], low, hi, linewidth=1, ec='face')
+plt.xlim(0, input_len / Fs_in / 2)
 plt.ylim(-1, 1)
-plt.axvspan(start-0.4, stop+0.2, -0.1, 1.1, color=(0, 0, 0, 0.12), linewidth=2, ec='red', ls='-')
+plt.axvspan(start-0.1, stop, -0.1, 1.1, color=('black', 0.16), linewidth=2, ec='none', ls='-')
 ax1.set_title('(a)', y=0, pad=-12)
 ax1.tick_params(pad=2)
 
@@ -133,7 +134,7 @@ ax3.set_ylabel("")
 # ax3.locator_params(axis='x', nbins=3)
 ax3.set_title('(c)', y=0, pad=-31)
 
-ax3.annotate("", xy=(3.7, Fs_in/2), xytext=(3.4, 12000), arrowprops=dict(fc='white', arrowstyle="simple,tail_width=0.3,head_width=0.7,head_length=0.7"))
+ax3.annotate("", xy=(2.5, Fs_in/2), xytext=(2.2, 12000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
 
 ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
 stft = spectrogram(output_tapered[mask_out], n_fft=1024)
@@ -146,7 +147,7 @@ ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_ylabel("")
 ax4.set_title('(d)', y=0, pad=-31)
 
-ax4.annotate("", xy=(3.7, Fs_in/2), xytext=(3.4, 12000), arrowprops=dict(fc='white', arrowstyle="simple,tail_width=0.3,head_width=0.7,head_length=0.7"))
+ax4.annotate("", xy=(2.5, Fs_in/2), xytext=(2.2, 12000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
 
 
 ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
