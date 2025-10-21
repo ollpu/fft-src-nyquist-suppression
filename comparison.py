@@ -3,6 +3,7 @@ import re
 import matplotlib.pyplot as plt
 import scipy.signal
 
+from lib.tabular import Tabular
 from lib.util import *
 from lib.taper import get_taper
 from lib.resamp import fft_resample
@@ -27,20 +28,19 @@ L_prop = 0.05 # of smaller Nyquist
 tapers = {
     # 'Box': 'box',
     'Cosine': 'cosine',
-    'Hann': 'hann',
-    'Blackman': 'blackman',
+    # 'Hann': 'hann',
+    # 'Blackman': 'blackman',
+    'Dolph--Cheby.': ('chebwin', 90.76),
     'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
     'DDC optimal': ('ddc', 144),
-    'Dolph--Cheb.': ('chebwin', 90.76),
 }
-# %%
 
 target_dB = -144
 columns = {
-    "name_and_psl": r"Window (PSL,\,dB)",
-    "time_to_dB": fr"T{-target_dB}\,(ms)",
+    "name_and_psl": r"Window (PSL in dB)",
     "main_lobe_width": r"MLW\,(ms)",
     "integrated_sidelobe_level": r"ISL\,(dB)",
+    "time_to_dB": fr"T{-target_dB}\,(ms)",
 }
 
 def highlight_cell(name, key):
@@ -51,26 +51,7 @@ def highlight_cell(name, key):
         return True
     return False
 
-def bold(text):
-    if res := re.fullmatch(r"\$(.*)\$", text):
-        return fr"$\mathbf{{{res[1]}}}$"
-    else:
-        return fr"\textbf{{{text}}}"
-
-def fmt_row(row, header=False):
-    return " & ".join((bold(row[col]) if header or highlight_cell(row["name"], col) else row[col]) for col in columns.keys()) + " \\\\\n"
-
-def fmt_table(table):
-    colspec = "l" + (len(columns)-1) * "c"
-    result = fr"\begin{{tabular}}{{{colspec}}}" + "\n\\toprule\n"
-    result += fmt_row(columns, True)
-    result += "\\midrule\n"
-    for row in table:
-        result += fmt_row(row)
-    result += "\\bottomrule\n\\end{tabular}\n"
-    return result
-
-# Analyses
+# %% Analyses
 
 def peak_magnitude(table_row, ir):
     print(f"- Peak magnitude:\t\t {amp2db(np.max(np.abs(ir))):.2f} dB")
@@ -84,7 +65,8 @@ def time_to_dB(table_row, ir, Fs):
 
     print(f"- Time above {target_dB} dB:\t\t {width_ms:.2f} ms")
 
-    table_row["time_to_dB"] = f"${width_ms:.2f}$"
+    decimals = 1 if width_ms >= 10 else 2
+    table_row["time_to_dB"] = f"${width_ms:.{decimals}f}$"
     if left == 0:
         table_row["time_to_dB"] = "--"
         left = None
@@ -114,7 +96,7 @@ def peak_sidelobe_level(table_row, ir, left, right):
     psl = amp2db(np.max(ir[mask]))
     print(f"- Peak sidelobe level:\t\t {psl:.2f} dB")
 
-    table_row["peak_sidelobe_level"] = f"${psl:.2f}$"
+    table_row["peak_sidelobe_level"] = f"${psl:.0f}$"
     table_row["name_and_psl"] = f"{table_row["name"]} ({table_row["peak_sidelobe_level"]})"
 
     return psl
@@ -128,10 +110,9 @@ def integrated_sidelobe_level(table_row, ir, left, right):
     print(f"- Integrated sidelobe level:\t {isl:.2f} dB")
 
 
-    table_row["integrated_sidelobe_level"] = f"${isl:.2f}$"
+    table_row["integrated_sidelobe_level"] = f"${isl:.0f}$"
 
     return isl
-
 
 # %%
 
@@ -146,7 +127,7 @@ for Fs_in, Fs_out, duration in conversions:
     print(("Upsample" if M > N else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s")
     print("==========")
 
-    table = []
+    table = Tabular(columns, highlight_cell)
 
     for name, spec in tapers.items():
         print("\nTaper:", name)
@@ -163,7 +144,7 @@ for Fs_in, Fs_out, duration in conversions:
 
 
         test_input = np.zeros(N)
-        # THe lengths are all even, so midpoint should have no fractional offset
+        # The lengths are all even, so midpoint should have no fractional offset
         test_input[N // 2 + fract_offset] = 1
 
         output = fft_resample(test_input, taper, M)
@@ -200,4 +181,4 @@ for Fs_in, Fs_out, duration in conversions:
             plt.show()
 
     print()
-    print(fmt_table(table))
+    print(table.fmt_table())
