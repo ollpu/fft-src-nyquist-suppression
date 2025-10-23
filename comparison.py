@@ -30,7 +30,7 @@ tapers = {
     'Cosine': 'cosine',
     # 'Hann': 'hann',
     # 'Blackman': 'blackman',
-    'Dolph--Cheby.': ('chebwin', 90.76),
+    'Dolph--Chebyshev': ('chebwin', 90.76),
     'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
     'DDC optimal': ('ddc', 144),
 }
