@@ -58,14 +58,16 @@ def get_window(win_spec, M, L):
             W = np.fft.fftshift(np.fft.irfft(w, L))
             W /= np.sum(W)
 
-            return W, { 'R': sidelobes_R, 'd': x0, 'order': order }
+            return W, { 'R': sidelobes_R, 'x0': x0, 'order': order }
 
         case ('ddc', sidelobes_dB, *rest):
             sidelobes_R = db2amp(sidelobes_dB)
 
             order = L-1
 
-            set_alpha = next(iter(rest), None)
+            rest_iter = iter(rest)
+            set_alpha = next(rest_iter, None)
+            set_x0 = next(rest_iter, None)
 
             def DQ(y):
                 alpha = set_alpha if set_alpha else (1 + np.sqrt(y**2-1)/y)/2
@@ -74,7 +76,7 @@ def get_window(win_spec, M, L):
                     Q = alpha*np.cosh(order*np.acosh(y)) - (1-alpha)*np.cosh((order-2)*np.acosh(y))
                     return (M - L) * Q
 
-            x0 = binary_search(DQ, (1, 2), sidelobes_R)
+            x0 = set_x0 if set_x0 else binary_search(DQ, (1, 2), sidelobes_R)
 
             alpha = set_alpha if set_alpha else (1 + np.sqrt(x0**2-1)/x0)/2
 
@@ -97,7 +99,7 @@ def get_window(win_spec, M, L):
             W = np.fft.fftshift(np.fft.irfft(w, L))
             W /= np.sum(W)
 
-            return W, { 'R': sidelobes_R, 'd': x0, 'alpha': alpha, 'order': order }
+            return W, { 'R': sidelobes_R, 'x0': x0, 'alpha': alpha, 'order': order }
 
         case _:
             W = scipy.signal.windows.get_window(win_spec, L, fftbins=False)

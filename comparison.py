@@ -30,12 +30,12 @@ tapers = {
     'Cosine': 'cosine',
     # 'Hann': 'hann',
     # 'Blackman': 'blackman',
-    'Dolph--Chebyshev': ('chebwin', 90.76),
-    'DDC $\\alpha=1/2$': ('ddc', 144, 0.5),
-    'DDC optimal': ('ddc', 144),
+    'Dolph--Chebyshev': ('chebwin', 95.8),
+    'DDC $\\alpha=1/2$': ('ddc', 150, 0.5),
+    'DDC optimal': ('ddc', 150),
 }
 
-target_dB = -144
+target_dB = -150
 columns = {
     "name_and_psl": r"Window (PSL in dB)",
     "main_lobe_width": r"MLW\,(ms)",
@@ -44,10 +44,11 @@ columns = {
 }
 
 def highlight_cell(name, key):
-    # TODO
-    if name == "DDC optimal" and key in ["time_to_dB", "main_lobe_width"]:
+    if name == "Cosine" and key == "main_lobe_width":
         return True
-    if name == "Dolph--Cheb." and key == "integrated_sidelobe_level":
+    if name == "DDC optimal" and key == "time_to_dB":
+        return True
+    if name == "Dolph--Chebyshev" and key == "integrated_sidelobe_level":
         return True
     return False
 
