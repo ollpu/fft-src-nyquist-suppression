@@ -8,9 +8,9 @@ from lib.resamp import fft_resample
 
 plt.style.use('plots.mplstyle')
 
-M = 500_000
+M = 400_000
 time_s = 50
-L = 25_000
+L = 20_000
 
 # %%
 
@@ -37,14 +37,14 @@ db_coarse = plt.subplot(gs[1])
 lin.set_xmargin(0.01)
 lin.set_ymargin(0.10)
 lin.locator_params(min_n_ticks=6, axis='x')
-db_coarse.set_xlim(4.485, 5.015)
+db_coarse.set_xlim(3.590, 4.010)
 db_coarse.set_ylim(-110, 10)
 lin.grid(True, lw=0.5, c='#ddd')
 db_coarse.grid(True, lw=0.5, c='#ddd')
 # db_fine.set_xlim(3.990, 4.210)
 # db_fine.set_ylim(-1.1, 0.1)
 
-lin.axvspan(4.485, 5.015, color=('black', 0.16), lw=0, zorder=2)
+lin.axvspan(3.590, 4.010, color=('black', 0.16), lw=0, zorder=2)
 
 lin.set_ylabel('Lin.')
 db_coarse.set_ylabel('Magnitude (dB)')
@@ -58,18 +58,17 @@ lin.plot(freq, taper, ':', c=col)
 db_coarse.plot(freq, amp2db(taper), ':', c=col, label='Cosine')
 # db_fine.plot(freq, amp2db(taper), '-')
 
-taper, _ = get_taper(('ddc', 150), M, L)
-taper = np.append(np.fft.fftshift(taper), [0])
-lin.plot(freq, taper)
-db_coarse.plot(freq, amp2db(taper), label='DDC optimal')
-# db_fine.plot(freq, amp2db(taper), ls=(1, (1, 1.65)), c=col)
-
 taper, _ = get_taper(('chebwin', 96), M, L)
 taper = np.append(np.fft.fftshift(taper), [0])
 lin.plot(freq, taper)
-db_coarse.plot(freq, amp2db(taper), label='Dolph–Cheby.')
+db_coarse.plot(freq, amp2db(taper), label='Dolph–Chebyshev')
 # db_fine.plot(freq, amp2db(taper), '-')
 
+taper, _ = get_taper(('ddc', 150), M, L)
+taper = np.append(np.fft.fftshift(taper), [0])
+lin.plot(freq, taper, '--')
+db_coarse.plot(freq, amp2db(taper), ls=(2.1, (3.7, 1.6)), label='DDC optimal')
+# db_fine.plot(freq, amp2db(taper), ls=(1, (1, 1.65)), c=col)
 
 db_coarse.legend()
 

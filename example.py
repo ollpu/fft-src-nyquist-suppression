@@ -11,14 +11,14 @@ from lib.resamp import fft_resample
 plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
-play = False
+play = True
 
 np.random.seed(4)
 
-Fs_in = 10000
-Fs_out = 48000
+Fs_in = 8000
+Fs_out = 22050
 
-input_len = 500_000
+input_len = 400_000
 output_len = int(Fs_out / Fs_in * input_len)
 L = int(0.10 * input_len / 2)
 print(output_len, L)
@@ -72,8 +72,8 @@ if play:
 time_in = np.arange(input_len) / Fs_in
 time_out = np.arange(output_len) / Fs_out
 
-start = 2.0
-stop = 4.0
+start = 1.0
+stop = 3.0
 pad = 0.05
 mask_in = (time_in >= start - pad) & (time_in < stop + pad)
 mask_out = (time_out >= start - pad) & (time_out < stop + pad)
@@ -84,32 +84,32 @@ gs = GridSpec(2, 4, height_ratios=[2, 5], width_ratios=[1, 1, 1, 0.1], left=0.1,
 
 ax1 = plt.subplot(gs[0, :3])
 
-input_half = input[:input_len//2]
-decimate = 100
+input_half = input[:Fs_in*7]
+decimate = 20
 chunks = input_half.reshape((len(input_half)//decimate, decimate))
 low = np.min(chunks, axis=-1)
 hi = np.max(chunks, axis=-1)
 
-plt.fill_between(time_in[:input_len//2:decimate], low, hi, linewidth=1, ec='face')
-plt.xlim(0, input_len / Fs_in / 2)
+plt.fill_between(time_in[:len(input_half):decimate], low, hi, linewidth=1, ec='face')
+plt.xlim(0, len(input_half) / Fs_in)
 plt.ylim(-1, 1)
-plt.axvspan(start-0.1, stop, -0.1, 1.1, color=('black', 0.16), linewidth=2, ec='none', ls='-')
+plt.axvspan(start, stop, -0.1, 1.1, color=('black', 0.16), linewidth=2, ec='none', ls='-')
 ax1.set_title('(a)', y=0, pad=-12)
 ax1.tick_params(pad=2)
 
 def spectrogram(sig, **params):
-    return librosa.amplitude_to_db(np.abs(librosa.stft(sig, window=('chebwin', 150), center=False, **params)), ref=np.max, amin=1e-10, top_db=150)
+    return librosa.amplitude_to_db(np.abs(librosa.stft(sig, window=('chebwin', 160), center=False, **params)), ref=np.max, amin=1e-10, top_db=150)
 
 ax2 = plt.subplot(gs[1, 0])
 stft = spectrogram(input[mask_in], n_fft=512)
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=512//4) + start - pad/2
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=512//4) + start
 img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_in[mask_in], input[mask_in])
 # plt.xlim(start, stop)
 # plt.ylim(-0.01, 0.01)
 ax2.set_xlabel("Time (s)", labelpad=2)
 ax2.set_ylabel("Frequency (kHz)", labelpad=2)
-ax2.locator_params('y', min_n_ticks=5)
+ax2.locator_params('y', min_n_ticks=6)
 ax2.set_title('(b)', y=0, pad=-31)
 ax2.locator_params(axis='x', nbins=3)
 # ax2.locator_params(axis='y', nbins=3)
@@ -125,7 +125,7 @@ ax2.plot([xlim[1], xlim[0]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
 
 ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
 stft = spectrogram(output_naive[mask_out], n_fft=1024)
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start - pad/2
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start
 img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_yticklabels(), visible=False)
@@ -133,12 +133,13 @@ ax3.set_xlabel("Time (s)", labelpad=2)
 ax3.set_ylabel("")
 # ax3.locator_params(axis='x', nbins=3)
 ax3.set_title('(c)', y=0, pad=-31)
+ax3.set_xlim(start, stop)
 
-ax3.annotate("", xy=(2.5, Fs_in/2), xytext=(2.2, 12000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
+ax3.annotate("", xy=(1.5, Fs_in/2), xytext=(1.2, 7000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
 
 ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
 stft = spectrogram(output_tapered[mask_out], n_fft=1024)
-img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start - pad/2
+img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start
 img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_out[mask_out], output_tapered[mask_out])
 plt.setp(ax4.get_yticklabels(), visible=False)
@@ -147,7 +148,7 @@ ax4.set_xlabel("Time (s)", labelpad=2)
 ax4.set_ylabel("")
 ax4.set_title('(d)', y=0, pad=-31)
 
-ax4.annotate("", xy=(2.5, Fs_in/2), xytext=(2.2, 12000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
+ax4.annotate("", xy=(1.5, Fs_in/2), xytext=(1.2, 7000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
 
 
 ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
