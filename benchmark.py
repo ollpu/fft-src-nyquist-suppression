@@ -10,7 +10,7 @@ from lib.util import *
 from lib.taper import get_taper_transition
 
 plot = False
-TARGET_S = 1
+REPETITIONS = 100
 
 # %%
 
@@ -22,8 +22,10 @@ L_prop = 0.05 # of smaller Nyquist
 
 tapers = {
     'Cosine': 'cosine',
-    'DDC optimal': ('ddc', 144),
+    'FIR (OLA FFT)': 'fir_ola',
+    'FIR (giant FFT)': 'fir_fft',
     'Dolph--Chebyshev': ('chebwin', 90.76),
+    'DDC optimal': ('ddc', 144),
 }
 
 fir_length_s = 0.00617
@@ -33,31 +35,33 @@ print("FIR points =", fir_length_samp)
 
 columns = {
     "name": r"Method",
-    "design_time": r"Design (ms)",
-    "exec_time": r"Execution (ms)",
+    "design_time": r"Design (\%)",
+    "exec_time": r"Execution (\%)",
 }
 
 def highlight_cell(name, key):
-    return "FIR" not in name and key == "exec_time"
+    if "OLA" in name and key == "design_time": return True
+    if "FIR" not in name and key == "exec_time": return True
+    return False
 
 # %%
 
-def bench(fn, setup=None, target_time=TARGET_S):
+def bench(fn, setup=None, repetitions=REPETITIONS):
     # Warm up once to ensure imports etc are resolved
     if setup: setup()
     fn()
 
-    init = time.perf_counter()
     runs = 0
     measured_time = 0.
-    while time.perf_counter() - init < target_time:
+    for rep in range(repetitions):
         if setup: setup()
         start = time.perf_counter()
         fn()
         measured_time += time.perf_counter() - start
         runs += 1
-    print(runs, "runs done")
-    return measured_time / runs
+    result = measured_time / runs
+    print(runs, "runs done, average", 1000*result, "ms")
+    return result
 
 def fmt_time(time_s):
     time_ms = time_s * 1000
@@ -99,74 +103,70 @@ for Fs_in, Fs_out, duration in conversions:
     print(f"FFT SRC without taper:\t{baseline_s*1000} ms")
 
     for name, spec in tapers.items():
-        print("\nTaper:", name)
+        print("\nMethod:", name)
 
         table_row = {"name": name}
         table.append(table_row)
 
-        # Design
-        def measure1():
-            global transition
-            transition, _ = get_taper_transition(spec, M, L)
+        if spec == 'fir_ola':
+            # Design
+            def measure3():
+                global kernel
+                kernel = scipy.signal.firwin(fir_length_samp, 21000, window=('chebwin', 135), fs=Fs_in)
 
-        fmt_design_time(table_row, bench(measure1), baseline_s)
+            fmt_design_time(table_row, bench(measure3), baseline_s)
 
-        # Execute
-        def setup2():
-            global buf
-            buf = np.fft.fft(sig)
+            # Execute OLA convolution & plain FFT SRC
+            def measure4():
+                sig_filt = scipy.signal.oaconvolve(sig, kernel, mode='same')
 
-        def measure2():
-            apply_taper_transition(buf, transition)
+            fmt_exec_time(table_row, bench(measure4), baseline_s)
 
-        fmt_exec_time(table_row, bench(measure2, setup2), baseline_s)
-
-    print("\nFIR OLA")
-    table_row = {"name": f"FIR OLA"}
-    table.append(table_row)
-
-    # Design
-    def measure3():
-        global kernel
-        kernel = scipy.signal.firwin(fir_length_samp, 21000, window=('chebwin', 135), fs=Fs_in)
-
-    fmt_design_time(table_row, bench(measure3), baseline_s)
-
-    # Execute OLA convolution & plain FFT SRC
-    def measure4():
-        sig_filt = scipy.signal.oaconvolve(sig, kernel, mode='same')
-
-    fmt_exec_time(table_row, bench(measure4), baseline_s)
-
-    print("\nFIR FFT")
-    table_row = {"name": f"FIR FFT"}
-    table.append(table_row)
-
-    # Design frequency-domain FIR (FFT of zero padded kernel)
-    def measure5():
-        global freq_fir
-        measure3()
-        kernel_padded = np.zeros(M)
-        kernel_padded[:(len(kernel) + 1)//2] = kernel[len(kernel)//2:]
-        kernel_padded[-(len(kernel)//2):] = kernel[:len(kernel)//2]
-        freq_fir = np.fft.fft(kernel_padded)
+        elif spec == 'fir_fft':
+            # Design frequency-domain FIR (FFT of zero padded kernel)
+            def measure5():
+                global freq_fir
+                measure3()
+                kernel_padded = np.zeros(M)
+                kernel_padded[:(len(kernel) + 1)//2] = kernel[len(kernel)//2:]
+                kernel_padded[-(len(kernel)//2):] = kernel[:len(kernel)//2]
+                freq_fir = np.fft.fft(kernel_padded)
 
 
-    fmt_design_time(table_row, bench(measure5), baseline_s)
+            fmt_design_time(table_row, bench(measure5), baseline_s)
 
-    if plot:
-        plt.plot(np.fft.fftfreq(M, 1/Fs_in)[:M//2], amp2db(freq_fir[:M//2]))
+            if plot:
+                plt.plot(np.fft.fftfreq(M, 1/Fs_in)[:M//2], amp2db(freq_fir[:M//2]))
 
-    # Perform frequency-domain multiplication
-    def setup6():
-        global buf
-        buf = np.fft.fft(sig)
+            # Perform frequency-domain multiplication
+            def setup6():
+                global buf
+                buf = np.fft.fft(sig)
 
-    def measure6():
-        global buf
-        buf *= freq_fir
+            def measure6():
+                global buf
+                buf *= freq_fir
 
-    fmt_exec_time(table_row, bench(measure6, setup6), baseline_s)
+            fmt_exec_time(table_row, bench(measure6, setup6), baseline_s)
+
+        else:
+            # Design
+            def measure1():
+                global transition
+                transition, _ = get_taper_transition(spec, M, L)
+
+            fmt_design_time(table_row, bench(measure1), baseline_s)
+
+            # Execute
+            def setup2():
+                global buf
+                buf = np.fft.fft(sig)
+
+            def measure2():
+                apply_taper_transition(buf, transition)
+
+            fmt_exec_time(table_row, bench(measure2, setup2), baseline_s)
+
 
     print()
     print(table.fmt_table())
