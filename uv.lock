@@ -260,7 +260,6 @@ dependencies = [
     { name = "librosa" },
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "samplerate" },
     { name = "scipy" },
     { name = "sounddevice" },
     { name = "standard-aifc" },
@@ -274,7 +273,6 @@ requires-dist = [
     { name = "librosa", specifier = "==0.10.2.post1" },
     { name = "matplotlib", specifier = "~=3.10.0" },
     { name = "numpy", specifier = "~=2.1" },
-    { name = "samplerate", specifier = ">=0.2.1" },
     { name = "scipy", specifier = "~=1.15.1" },
     { name = "sounddevice", specifier = ">=0.5.2" },
     { name = "standard-aifc", specifier = ">=3.13.0" },
@@ -903,15 +901,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/e1/0a/929373653770d8a0d
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/e4/56027c4a6b4ae70ca9de302488c5ca95ad4a39e190093d6c1a8ace08341b/requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c", size = 64847, upload-time = "2025-06-09T16:43:05.728Z" },
 ]
-
-[[package]]
-name = "samplerate"
-version = "0.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/9c/d8978b13b8af2f28fdc425e2893f7419d1d6429da1c6a850be83ad095d4f/samplerate-0.2.1.tar.gz", hash = "sha256:464d3574412024184fb7428ecbaa1b2e207bddf5fbc10a5d9ddc3fc1c7b7ab1e", size = 21494, upload-time = "2024-01-23T23:52:03.96Z" }
 
 [[package]]
 name = "scikit-learn"
