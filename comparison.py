@@ -14,7 +14,7 @@ plot = False
 # %%
 
 conversions = [
-    (44100, 192000, 1),
+    (44100, 192000, 50),
     # (44100, 96000, 10),
     # (44100, 192000, 100),
 
@@ -125,7 +125,7 @@ for Fs_in, Fs_out, duration in conversions:
     smaller = min(N, M)
 
     print("\n\n")
-    print(("Upsample" if M > N else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s")
+    print(("Upsample" if M > N else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s, M =", smaller)
     print("==========")
 
     table = Tabular(columns, highlight_cell)

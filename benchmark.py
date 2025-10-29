@@ -87,7 +87,7 @@ for Fs_in, Fs_out, duration in conversions:
     L = int(L_prop * M / 2)
 
     print("\n\n")
-    print(("Upsample" if N_out > N_in else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s")
+    print(("Upsample" if N_out > N_in else "Downsample"), Fs_in, "to", Fs_out, "duration", duration, "s, M =", M, ", L =", L)
     print("==========")
 
     table = Tabular(columns, highlight_cell)
