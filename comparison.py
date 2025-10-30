@@ -107,7 +107,7 @@ def integrated_sidelobe_level(table_row, ir, left, right):
     idx = np.arange(len(ir))
     mask = (idx < left) | (idx > right)
 
-    isl = pow2db(np.sum(ir_s[mask]) / np.sum(ir_s[~mask]))
+    isl = pow2db(np.sum(ir_s[mask]) / np.sum(ir_s))
     print(f"- Integrated sidelobe level:\t {isl:.2f} dB")
 
 
