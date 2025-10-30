@@ -28,7 +28,7 @@ tapers = {
     'DDC optimal': ('ddc', 144),
 }
 
-fir_length_s = 0.00617
+fir_length_s = 0.00652
 fir_length_samp = int(44100 * fir_length_s)
 if fir_length_samp % 2 == 0: fir_length_samp += 1
 print("FIR points =", fir_length_samp)
