@@ -17,9 +17,9 @@ tapers = {
     'Cosine': 'cosine',
     # 'Hann': 'hann',
     # 'Blackman': 'blackman',
-    'Dolph–\nCheby.': ('chebwin', 63),
-    'DDC\t$\\alpha=1/2$': ('ddc', 120, 0.5),
-    'DDC\t$\\alpha$ optimal': ('ddc', 120),
+    'Dolph–\nCheby.': ('chebwin', 97),
+    'DDC\t$\\alpha=1/2$': ('ddc', 150, 0.5),
+    'DDC\t$\\alpha$ optimal': ('ddc', 150),
 }
 
 
@@ -41,9 +41,9 @@ axs = fig.subplots(len(tapers)//2, 2, sharex=True, sharey=True)
 
 fax = axs[0, 0]
 fax.set_xlim(-12.5, 12.5)
-fax.set_ylim(-165, 5)
+fax.set_ylim(-207, 7)
 fax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='x')
-fax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='y')
+fax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 5, 10], axis='y')
 # fax.set_yticks([-180, -144, -120, -60, 0])
 
 for pos, (name, spec) in enumerate(tapers.items()):
@@ -72,12 +72,13 @@ for pos, (name, spec) in enumerate(tapers.items()):
         ax.set_xlabel("Time (ms)", labelpad=3)
     ax.set_title(f'({chr(ord('a')+pos-1)})', y=0, pad=pad)
     parts = name.split("\t")
-    ax.text(0.05, 0.93, parts[0], horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+    y = 0.964 if name.startswith("Dolph") else 0.93
+    ax.text(0.05, y, parts[0], horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     if len(parts) > 1:
         ax.text(0.95, 0.85, parts[1], horizontalalignment='right', verticalalignment='baseline', transform=ax.transAxes)
 
 
-fig.supylabel("Magnitude (dB)", x=0.01)
+fig.supylabel("Magnitude (dB)", x=0.01, y=0.6)
 
 plt.show()
 
