@@ -24,8 +24,8 @@ tapers = {
     'Cosine': 'cosine',
     'FIR (OLA FFT)': 'fir_ola',
     'FIR (giant FFT)': 'fir_fft',
-    'Dolph--Chebyshev': ('chebwin', 90.76),
-    'DDC optimal': ('ddc', 144),
+    'Dolph--Chebyshev': ('chebwin', 95.8),
+    'DDC optimal': ('ddc', 150),
 }
 
 fir_length_s = 0.00652
