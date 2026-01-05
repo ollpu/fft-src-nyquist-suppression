@@ -18,7 +18,7 @@ L = 20_000
 
 fig = plt.figure(figsize=(3.5, 2))
 
-gs = GridSpec(2, 1, height_ratios=[2, 5], left=0.14, bottom=0.24, right=0.97, top=0.97, hspace=0.45, wspace=0.26)
+gs = GridSpec(2, 1, height_ratios=[2, 5], left=0.14, bottom=0.21, right=0.97, top=0.97, hspace=0.45, wspace=0.26)
 
 freq = (np.arange(M + 1) - M//2) / time_s / 1000
 
@@ -46,7 +46,7 @@ db_coarse.grid(True, lw=0.5, c='#ddd')
 
 lin.axvspan(3.590, 4.010, color=('black', 0.16), lw=0, zorder=2)
 
-lin.set_ylabel('Lin.')
+lin.set_ylabel('$W(k)$')
 db_coarse.set_ylabel('Magnitude (dB)')
 
 fig.supxlabel('Frequency (kHz)', x=0.56, y=0.06)
