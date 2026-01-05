@@ -2,16 +2,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import sounddevice as sd
 
 from lib.util import *
 from lib.taper import get_taper
 from lib.resamp import fft_resample
 
+import soundfile as sf
+
 plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
-play = True
+play = False
+write = True
+if play:
+    import sounddevice as sd
 
 np.random.seed(4)
 
@@ -35,20 +39,30 @@ input *= envelope
 
 input = input / np.max(np.abs(input))
 
+clip = input[:10*Fs_in]
+
 if play:
-    sd.play(input[:4*Fs_in], Fs_in)
+    sd.play(clip, Fs_in)
     sd.wait()
+
+if write:
+    sf.write("website/example_in.wav", clip, Fs_in)
 
 # %% FFT resampling without tapering
 
 output_naive = fft_resample(input, np.ones(input_len), output_len)
 
-plt.plot(amp2db(output_naive[:5*Fs_out]))
+plt.plot(amp2db(output_naive[:5*Fs_out] / np.max(np.abs(output_naive))))
 plt.show()
 
+clip = output_naive[:10*Fs_out]
+
 if play:
-    sd.play(output_naive[:4*Fs_out], Fs_out)
+    sd.play(clip, Fs_out)
     sd.wait()
+
+if write:
+    sf.write("website/example_naive.wav", clip, Fs_out)
 
 
 # %% FFT resampling with tapering
@@ -57,12 +71,18 @@ taper, _ = get_taper(('ddc', 150), input_len, L)
 # taper, _ = get_taper(('cosine'), input_len, L)
 output_tapered = fft_resample(input, taper, output_len)
 
-plt.plot(amp2db(output_tapered[:5*Fs_out]))
+plt.plot(amp2db(output_tapered[:5*Fs_out] / np.max(np.abs(output_tapered))))
+plt.axhline(-120)
 plt.show()
 
+clip = output_tapered[:10*Fs_out]
+
 if play:
-    sd.play(output_tapered[:4*Fs_out], Fs_out)
+    sd.play(clip, Fs_out)
     sd.wait()
+
+if write:
+    sf.write("website/example_tapered.wav", clip, Fs_out)
 
 # %% Plot
 
@@ -80,11 +100,11 @@ mask_out = (time_out >= start - pad) & (time_out < stop + pad)
 
 fig = plt.figure(figsize=(3.5, 2))
 
-gs = GridSpec(2, 4, height_ratios=[2, 5], width_ratios=[1, 1, 1, 0.1], left=0.1, bottom=0.24, right=0.91, top=0.97, hspace=0.45)
+gs = GridSpec(2, 4, height_ratios=[2, 5], width_ratios=[1, 1, 1, 0.1], left=0.1, bottom=0.21, right=0.91, top=0.97, hspace=0.70)
 
 ax1 = plt.subplot(gs[0, :3])
 
-input_half = input[:Fs_in*7]
+input_half = input[:Fs_in*5]
 decimate = 20
 chunks = input_half.reshape((len(input_half)//decimate, decimate))
 low = np.min(chunks, axis=-1)
@@ -94,7 +114,9 @@ plt.fill_between(time_in[:len(input_half):decimate], low, hi, linewidth=1, ec='f
 plt.xlim(0, len(input_half) / Fs_in)
 plt.ylim(-1, 1)
 plt.axvspan(start, stop, -0.1, 1.1, color=('black', 0.16), linewidth=2, ec='none', ls='-')
-ax1.set_title('(a)', y=0, pad=-12)
+ax1.set_ylabel("$x(n)$", labelpad=2)
+ax1.set_xlabel("Time (s)", labelpad=-2)
+ax1.set_title('(a)', y=0, pad=-24)
 ax1.tick_params(pad=2)
 
 def spectrogram(sig, **params):
@@ -107,10 +129,10 @@ img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_
 # plt.plot(time_in[mask_in], input[mask_in])
 # plt.xlim(start, stop)
 # plt.ylim(-0.01, 0.01)
-ax2.set_xlabel("Time (s)", labelpad=2)
+ax2.set_xlabel("Time (s)", labelpad=1)
 ax2.set_ylabel("Frequency (kHz)", labelpad=2)
 ax2.locator_params('y', min_n_ticks=6)
-ax2.set_title('(b)', y=0, pad=-31)
+ax2.set_title('(b)', y=0, pad=-28)
 ax2.locator_params(axis='x', nbins=3)
 # ax2.locator_params(axis='y', nbins=3)
 xlim = (start-0.02, stop+0.02)
@@ -129,10 +151,10 @@ img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1
 img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
 # plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_yticklabels(), visible=False)
-ax3.set_xlabel("Time (s)", labelpad=2)
+ax3.set_xlabel("Time (s)", labelpad=1)
 ax3.set_ylabel("")
 # ax3.locator_params(axis='x', nbins=3)
-ax3.set_title('(c)', y=0, pad=-31)
+ax3.set_title('(c)', y=0, pad=-28)
 ax3.set_xlim(start, stop)
 
 ax3.annotate("", xy=(1.5, Fs_in/2), xytext=(1.2, 7000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
@@ -144,9 +166,9 @@ img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y
 # plt.plot(time_out[mask_out], output_tapered[mask_out])
 plt.setp(ax4.get_yticklabels(), visible=False)
 ax4.locator_params(axis='x', nbins=3)
-ax4.set_xlabel("Time (s)", labelpad=2)
+ax4.set_xlabel("Time (s)", labelpad=1)
 ax4.set_ylabel("")
-ax4.set_title('(d)', y=0, pad=-31)
+ax4.set_title('(d)', y=0, pad=-28)
 
 ax4.annotate("", xy=(1.5, Fs_in/2), xytext=(1.2, 7000), arrowprops=dict(fc='white', ec='none', arrowstyle="simple", shrinkB=1))
 

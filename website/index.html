@@ -1,1 +1,72 @@
-<b>To be populated</b>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion – IEEE Signal Processing Letters</title>
+        <style>
+            :root {
+                /*font-family: 'Times New Roman', serif;*/
+                font-family: 'Noto Sans', sans-serif;
+                font-size: 16px;
+            }
+            body {
+                max-width: 720px;
+                margin: 0 auto;
+                padding: 0 16px;
+            }
+            figure {
+                max-width: 500px;
+            }
+            figure img {
+                max-width: 100%;
+            }
+        </style>
+        <link rel="stylesheet" href="assets/katex.min.css">
+        <script defer src="assets/katex.min.js"></script>
+        <script defer src="assets/auto-render.min.js"></script>
+        <script>
+            document.addEventListener('play', function(e) {
+                const audios = document.getElementsByTagName('audio');
+                for (const audio of audios) {
+                    if (audio != e.target) {
+                        audio.pause();
+                    }
+                }
+            }, true);
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                    ],
+                    throwOnError: false,
+                });
+            });
+        </script>
+
+    </head>
+    <body>
+        <h1>Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion</h1>
+        <p>Roope Salmi and Vesa Välimäki</p>
+        <p>Companion page to the journal article submitted to IEEE Signal Processing Letters</p>
+        <h2>Abstract</h2>
+        <p>
+            Sample rate conversion, a common task in audio signal processing, can be performed with high quality using the fast Fourier transform (FFT) on the whole audio file. Before returning to the time domain using the inverse FFT, the sample rate of the signal is changed by either truncating or zero-padding the frequency-domain buffer. This operation leaves a discontinuity in the spectrum, which causes time-domain ringing at that frequency. The ringing can be suppressed by tapering the highest frequency bins. This letter introduces the double Dolph-Chebyshev window, a frequency-domain tapering function with a configurable level of ringing outside its main lobe in the transform domain. In comparison to basic cosine tapering, the proposed method provides, for example, a 150-dB suppression 91% faster. This letter improves the accuracy of FFT-based sample rate conversion, making it a practical tool for signal processing.
+        </p>
+        <h2>Example Conversion</h2>
+        <figure>
+            <img src="example.png">
+            <figcaption>Fig. 1. (a) A test signal sampled at 8 kHz and (b) its spectrogram from 1 s to 3 s. Content above the Nyquist limit is not shown in (b). Spectrograms of the same signal upsampled to 22.05 kHz using the FFT method (c) without tapering and (d) with tapering via the DDC window $(L=20{,}000$, $R=150\,\mathrm{dB})$. In (c), ringing appears at 4 kHz when tapering is not used, whereas in (d) it is suppressed when the proposed tapering is applied (see arrows).</figcaption>
+        </figure>
+        <h3>Input signal $x(n)$</h3>
+        <p>Sample rate 8 kHz. Upsampled upon playback by your audio system.</p>
+        <p><audio controls src="example_in.wav"></audio></p>
+        <h3>Output signal $x'(n)$, naive FFT-based SRC</h3>
+        <p>Sample rate 22.05 kHz.</p>
+        <p><audio controls src="example_naive.wav"></audio></p>
+        <h3>Output signal $x'(n)$, with frequency-domain DDC tapering</h3>
+        <p>Sample rate 22.05 kHz.</p>
+        <p><audio controls src="example_tapered.wav"></audio></p>
+    </body>
+</html>
