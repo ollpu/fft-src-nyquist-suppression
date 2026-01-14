@@ -11,8 +11,8 @@ Website with sound examples: <https://ollpu.github.io/fft-src-nyquist-suppressio
 - [example.py](example.py): Reproduces [Fig. 1](figures/fig1.pdf) and the sound examples available on the website.
 - [tapers.py](tapers.py): [Fig. 2](figures/fig2.pdf)
 - [irs.py](irs.py): [Fig. 3](figures/fig3.pdf)
-- [comparison.py](comparison.py): Computes the data for Table I. Output saved [here](output/comparison.txt)
-- [benchmark.py](benchmark.py): Runs the benchmark for Table II. Output saved [here](output/benchmark.txt)
+- [comparison.py](comparison.py): Computes the data for Table I. Output saved [here](output/comparison.txt).
+- [benchmark.py](benchmark.py): Runs the benchmark for Table II. Output saved [here](output/benchmark.txt).
 
 ### Running the scripts
 
