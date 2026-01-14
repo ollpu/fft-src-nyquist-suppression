@@ -184,4 +184,4 @@ ax5.yaxis.set_major_formatter(lambda x, p: (str(int(x)) if x != 0 else "0 dB"))
 plt.show()
 
 
-fig.savefig("example.pdf")
+fig.savefig("figures/fig1.pdf")

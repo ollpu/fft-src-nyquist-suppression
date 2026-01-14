@@ -74,4 +74,4 @@ db_coarse.legend()
 
 plt.show()
 
-fig.savefig("taper.pdf")
+fig.savefig("figures/fig2.pdf")

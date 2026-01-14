@@ -82,4 +82,4 @@ fig.supylabel("Magnitude (dB)", x=0.01, y=0.6)
 
 plt.show()
 
-fig.savefig("irs.pdf")
+fig.savefig("figures/fig3.pdf")
