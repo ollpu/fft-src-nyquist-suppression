@@ -1,5 +1,8 @@
-# %%
-import re
+"""
+Table I: Comparison of time-domain properties.
+"""
+
+# %% Setup
 import matplotlib.pyplot as plt
 import scipy.signal
 
@@ -10,26 +13,16 @@ from lib.resamp import fft_resample
 
 plot = False
 
-
-# %%
+# %% Parameters and table headings
 
 conversions = [
     (44100, 192000, 50),
-    # (44100, 96000, 10),
-    # (44100, 192000, 100),
-
-    # (96000, 44100, 1),
-    # (96000, 44100, 10),
-    # (96000, 44100, 100),
 ]
 
 L_prop = 0.05 # of smaller Nyquist
 
 tapers = {
-    # 'Box': 'box',
     'Cosine': 'cosine',
-    # 'Hann': 'hann',
-    # 'Blackman': 'blackman',
     'Dolph--Chebyshev': ('chebwin', 95.8),
     'DDC $\\alpha=1/2$': ('ddc', 150, 0.5),
     'DDC optimal': ('ddc', 150),
@@ -52,7 +45,7 @@ def highlight_cell(name, key):
         return True
     return False
 
-# %% Analyses
+# %% Analysis definitions
 
 def peak_magnitude(table_row, ir):
     print(f"- Peak magnitude:\t\t {amp2db(np.max(np.abs(ir))):.2f} dB")
@@ -115,7 +108,7 @@ def integrated_sidelobe_level(table_row, ir, left, right):
 
     return isl
 
-# %%
+# %% Produce Table I
 
 fract_offset = 0
 

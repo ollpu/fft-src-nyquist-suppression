@@ -1,4 +1,12 @@
-# %%
+"""
+Example conversion with and without tapering.
+
+Used to generate Fig. 1 and the sound examples on the website.
+
+Set `play = True` below to hear the original signal and its conversions.
+"""
+
+# %% Setup
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -13,7 +21,8 @@ plt.style.use('plots.mplstyle')
 
 # WARNING: Loud!
 play = False
-write = True
+write = False
+
 if play:
     import sounddevice as sd
 
@@ -42,6 +51,7 @@ input = input / np.max(np.abs(input))
 clip = input[:10*Fs_in]
 
 if play:
+    # Resampled on the fly by Portaudio or your system!
     sd.play(clip, Fs_in)
     sd.wait()
 
@@ -84,10 +94,7 @@ if play:
 if write:
     sf.write("website/example_tapered.wav", clip, Fs_out)
 
-# %% Plot
-
-# %matplotlib osx
-# plt.close()
+# %% Produce Fig. 1
 
 time_in = np.arange(input_len) / Fs_in
 time_out = np.arange(output_len) / Fs_out
@@ -126,20 +133,17 @@ ax2 = plt.subplot(gs[1, 0])
 stft = spectrogram(input[mask_in], n_fft=512)
 img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_in, hop_length=512//4) + start
 img = librosa.display.specshow(stft, sr=Fs_in, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
-# plt.plot(time_in[mask_in], input[mask_in])
-# plt.xlim(start, stop)
-# plt.ylim(-0.01, 0.01)
+
 ax2.set_xlabel("Time (s)", labelpad=1)
 ax2.set_ylabel("Frequency (kHz)", labelpad=2)
 ax2.locator_params('y', min_n_ticks=6)
 ax2.set_title('(b)', y=0, pad=-28)
 ax2.locator_params(axis='x', nbins=3)
-# ax2.locator_params(axis='y', nbins=3)
 xlim = (start-0.02, stop+0.02)
 ax2.set_xlim(xlim)
 ax2.set_ylim(0, Fs_out/2)
 
-# Cross out area beyound Nyquist
+# Cross out area beyond Nyquist
 ax2.axhspan(Fs_in/2, Fs_out/2, color='lightgray', lw=0)
 ax2.plot([xlim[0], xlim[1]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
 ax2.plot([xlim[1], xlim[0]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
@@ -149,11 +153,9 @@ ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
 stft = spectrogram(output_naive[mask_out], n_fft=1024)
 img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start
 img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
-# plt.plot(time_out[mask_out], output_naive[mask_out])
 plt.setp(ax3.get_yticklabels(), visible=False)
 ax3.set_xlabel("Time (s)", labelpad=1)
 ax3.set_ylabel("")
-# ax3.locator_params(axis='x', nbins=3)
 ax3.set_title('(c)', y=0, pad=-28)
 ax3.set_xlim(start, stop)
 
@@ -163,7 +165,6 @@ ax4 = plt.subplot(gs[1, 2], sharex=ax2, sharey=ax2)
 stft = spectrogram(output_tapered[mask_out], n_fft=1024)
 img_t = librosa.frames_to_time(np.arange(stft.shape[1]), sr=Fs_out, hop_length=1024//4) + start
 img = librosa.display.specshow(stft, sr=Fs_out, x_coords=img_t, x_axis='time', y_axis='linear', cmap='viridis')
-# plt.plot(time_out[mask_out], output_tapered[mask_out])
 plt.setp(ax4.get_yticklabels(), visible=False)
 ax4.locator_params(axis='x', nbins=3)
 ax4.set_xlabel("Time (s)", labelpad=1)
@@ -178,7 +179,6 @@ ax2.yaxis.set_major_formatter(lambda x, p: str(int(x / 1000)))
 ax5 = plt.subplot(gs[1, 3])
 fig.colorbar(img, cax=ax5)
 ax5.yaxis.set_major_formatter(lambda x, p: (str(int(x)) if x != 0 else "0 dB"))
-# ax5.set_ylabel("dB")
 
 
 plt.show()

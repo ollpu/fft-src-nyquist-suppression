@@ -1,4 +1,8 @@
-# %%
+"""
+Fig. 3: Time-domain impulse responses of tapering functions.
+"""
+
+# %% Setup
 import matplotlib.pyplot as plt
 
 from lib.util import *
@@ -15,16 +19,13 @@ L = 1102
 tapers = {
     'Box': 'box',
     'Cosine': 'cosine',
-    # 'Hann': 'hann',
-    # 'Blackman': 'blackman',
     'Dolph–\nCheby.': ('chebwin', 97),
     'DDC\t$\\alpha=1/2$': ('ddc', 150, 0.5),
     'DDC\t$\\alpha$ optimal': ('ddc', 150),
 }
 
 
-# %%
-%matplotlib inline
+# %% Produce Fig. 3
 
 input = np.zeros(N)
 input[N//2] = 1
@@ -44,7 +45,6 @@ fax.set_xlim(-12.5, 12.5)
 fax.set_ylim(-207, 7)
 fax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 10], axis='x')
 fax.locator_params(min_n_ticks=4, steps=[1, 2, 4, 5, 10], axis='y')
-# fax.set_yticks([-180, -144, -120, -60, 0])
 
 for pos, (name, spec) in enumerate(tapers.items()):
     if spec == 'box': continue
@@ -60,11 +60,9 @@ for pos, (name, spec) in enumerate(tapers.items()):
 
     ax = axs[row][col]
     ax.plot(time[mask], amp2db(box_output[mask]), label='Box', linewidth=0.7, color='#bbb')
-    # ax.fill_between(time[mask], -300, amp2db(box_output[mask]), linewidth=1, color='#ccc', ec='#ccc')
     ax.plot(time[mask], amp2db(output[mask]), label=name, linewidth=0.7, c='tab:blue')
 
     ax.grid(True, lw=0.5, c='#ddd')
-    # ax.xaxis.set_zorder(1.5)
 
     pad = -11
     if last_row:

@@ -1,5 +1,8 @@
-# %%
-import re
+"""
+Table II: Computational overhead benchmark
+"""
+
+# %% Setup
 import time
 import matplotlib.pyplot as plt
 import scipy.signal
@@ -12,7 +15,7 @@ from lib.taper import get_taper_transition
 plot = False
 REPETITIONS = 100
 
-# %%
+# %% Parameters and table headings
 
 conversions = [
     (44100, 48000, 50),
@@ -44,7 +47,7 @@ def highlight_cell(name, key):
     if "FIR" not in name and key == "exec_time": return True
     return False
 
-# %%
+# %% Run benchmark and produce Table II
 
 def bench(fn, setup=None, repetitions=REPETITIONS):
     # Warm up once to ensure imports etc are resolved
