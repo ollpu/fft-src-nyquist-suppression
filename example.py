@@ -51,7 +51,7 @@ input = input / np.max(np.abs(input))
 clip = input[:10*Fs_in]
 
 if play:
-    # Resampled on the fly by Portaudio or your system!
+    print("Playing input signal. Resampled on the fly by Portaudio or your system!")
     sd.play(clip, Fs_in)
     sd.wait()
 
@@ -68,6 +68,7 @@ plt.show()
 clip = output_naive[:10*Fs_out]
 
 if play:
+    print("Playing resampled signal without tapering. Notice the ringing.")
     sd.play(clip, Fs_out)
     sd.wait()
 
@@ -78,7 +79,6 @@ if write:
 # %% FFT resampling with tapering
 
 taper, _ = get_taper(('ddc', 150), input_len, L)
-# taper, _ = get_taper(('cosine'), input_len, L)
 output_tapered = fft_resample(input, taper, output_len)
 
 plt.plot(amp2db(output_tapered[:5*Fs_out] / np.max(np.abs(output_tapered))))
@@ -88,6 +88,7 @@ plt.show()
 clip = output_tapered[:10*Fs_out]
 
 if play:
+    print("Playing resampled signal with tapering.")
     sd.play(clip, Fs_out)
     sd.wait()
 
