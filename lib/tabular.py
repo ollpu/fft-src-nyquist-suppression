@@ -1,4 +1,6 @@
-# Format LaTeX tables
+"""
+Purpose-built utility for formatting tables in LaTeX
+"""
 
 import re
 

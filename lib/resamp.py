@@ -1,10 +1,21 @@
-# FFT-based resmpling
+"""
+Functions to perform FFT-based resmpling
+"""
 
-from lib.util import *
 import numpy as np
 
 def fft_resample(input, taper, output_len):
-    """Takes full taper with length equal to smaller of input/output buffers"""
+    """Perform FFT-based resampling, given the full tapering function.
+
+    Args:
+        input: Real-valued input signal of length N
+        taper: Taper function of length M = min(N, Nprime),
+            or None for no tapering.
+        output_len: Desired output signal length Nprime
+
+    Returns:
+        Resampled output signal of length Nprime
+    """
 
     ratio = output_len / len(input)
 
@@ -30,7 +41,18 @@ def fft_resample(input, taper, output_len):
     return ratio * np.real(np.fft.ifft(output_f))
 
 def fft_resample_transition(input, taper_transition, output_len):
-    """Takes only the positive side transition band of taper function (decreasing from 1 to 0)"""
+    """Perform FFT-based resampling, given one transition band of the taper function.
+
+    Args:
+        input: Real-valued input signal of length N
+        taper_transition: Positive transition band of the tapering function, length L.
+            The topmost L frequency bands below Nyquist are tapered with this function.
+            Should decrease from 1 to 0. Pass None for no tapering.
+        output_len: Desired output signal length Nprime
+
+    Returns:
+        Resampled output signal of length Nprime
+    """
 
     ratio = output_len / len(input)
 
@@ -56,11 +78,11 @@ def fft_resample_transition(input, taper_transition, output_len):
     return ratio * np.real(np.fft.ifft(output_f))
 
 def apply_taper_transition(buf, transition):
-    m = len(buf)
-    l = len(transition)
-    end_pos = (m + 1) // 2
-    start_pos = end_pos - l
+    M = len(buf)
+    L = len(transition)
+    end_pos = (M + 1) // 2
+    start_pos = end_pos - L
     buf[start_pos:end_pos] *= transition
     start_pos = end_pos + 1
-    end_pos = start_pos + l
+    end_pos = start_pos + L
     buf[start_pos:end_pos] *= transition[::-1]
