@@ -1,0 +1,50 @@
+FIR points = 273
+
+
+
+Upsample 44100 to 48000 duration 50 s, M = 2205000 , L = 55125
+==========
+100 runs done, average 206.6054820404679 ms
+FFT SRC without taper:	206.6054820404679 ms
+
+Method: Cosine
+100 runs done, average 0.9458762695430778 ms
+- Design:	 0.5 %
+100 runs done, average 0.21563235073699616 ms
+- Execution:	 0.1 %
+
+Method: FIR (OLA FFT)
+100 runs done, average 0.13754449944826774 ms
+- Design:	 0.1 %
+100 runs done, average 40.1943674897484 ms
+- Execution:	 19.5 %
+
+Method: FIR (giant FFT)
+100 runs done, average 100.23143789061578 ms
+- Design:	 48.5 %
+100 runs done, average 2.7576445002341643 ms
+- Execution:	 1.3 %
+
+Method: Dolph--Chebyshev
+100 runs done, average 1.6175480306264944 ms
+- Design:	 0.8 %
+100 runs done, average 0.22136568935820833 ms
+- Execution:	 0.1 %
+
+Method: DDC optimal
+100 runs done, average 2.4975049404019956 ms
+- Design:	 1.2 %
+100 runs done, average 0.21796840097522363 ms
+- Execution:	 0.1 %
+
+\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Design (\%)} & \textbf{Execution (\%)} \\
+\midrule
+Cosine & $0.5$ & $\mathbf{0.1}$ \\
+FIR (OLA FFT) & $\mathbf{0.1}$ & $19.5$ \\
+FIR (giant FFT) & $48.5$ & $1.3$ \\
+Dolph--Chebyshev & $0.8$ & $\mathbf{0.1}$ \\
+DDC optimal & $1.2$ & $\mathbf{0.1}$ \\
+\bottomrule
+\end{tabular}

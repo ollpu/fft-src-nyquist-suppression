@@ -1,0 +1,53 @@
+
+
+
+Upsample 44100 to 192000 duration 50 s, M = 2205000
+==========
+
+Taper: Cosine
+Meta: L=55125, fract_offset=0, {}
+
+- Peak magnitude:		 0.00 dB
+- Time above -150 dB:		 70.96 ms
+- Main lobe width:		 2.72 ms
+- Peak sidelobe level:		 -70.34 dB
+- Integrated sidelobe level:	 -57.15 dB
+
+Taper: Dolph--Chebyshev
+Meta: L=55125, fract_offset=0, {'R': np.float64(61659.50018614822), 'x0': np.float64(1.0000000226115975), 'order': 55124}
+
+- Peak magnitude:		 0.00 dB
+- Time above -150 dB:		 7.01 ms
+- Main lobe width:		 6.83 ms
+- Peak sidelobe level:		 -150.11 dB
+- Integrated sidelobe level:	 -130.40 dB
+
+Taper: DDC $\alpha=1/2$
+Meta: L=55125, fract_offset=0, {'R': np.float64(31622776.60168379), 'x0': 1.0000000230228254, 'alpha': 0.5, 'order': 55124}
+
+- Peak magnitude:		 0.00 dB
+- Time above -150 dB:		 6.68 ms
+- Main lobe width:		 6.83 ms
+- Peak sidelobe level:		 -150.00 dB
+- Integrated sidelobe level:	 -92.68 dB
+
+Taper: DDC optimal
+Meta: L=55125, fract_offset=0, {'R': np.float64(31622776.60168379), 'x0': 1.0000000206072164, 'alpha': np.float64(0.5001015066888203), 'order': 55124}
+
+- Peak magnitude:		 0.00 dB
+- Time above -150 dB:		 6.45 ms
+- Main lobe width:		 6.52 ms
+- Peak sidelobe level:		 -150.00 dB
+- Integrated sidelobe level:	 -92.68 dB
+
+\begin{tabular}{lccc}
+\toprule
+\textbf{Window (PSL in dB)} & \textbf{MLW\,(ms)} & \textbf{ISL\,(dB)} & \textbf{T150\,(ms)} \\
+\midrule
+Cosine ($-70$) & $\mathbf{2.72}$ & $-57$ & $71.0$ \\
+Dolph--Chebyshev ($-150$) & $6.83$ & $\mathbf{-130}$ & $7.01$ \\
+DDC $\alpha=1/2$ ($-150$) & $6.83$ & $-93$ & $6.68$ \\
+DDC optimal ($-150$) & $6.52$ & $-93$ & $\mathbf{6.45}$ \\
+\bottomrule
+\end{tabular}
+
