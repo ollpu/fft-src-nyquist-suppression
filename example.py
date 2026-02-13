@@ -19,6 +19,8 @@ import soundfile as sf
 
 plt.style.use('plots.mplstyle')
 
+plt.rcParams['figure.dpi'] = 300
+
 # WARNING: Loud!
 play = False
 write = False
@@ -146,8 +148,12 @@ ax2.set_ylim(0, Fs_out/2)
 
 # Cross out area beyond Nyquist
 ax2.axhspan(Fs_in/2, Fs_out/2, color='lightgray', lw=0)
-ax2.plot([xlim[0], xlim[1]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
-ax2.plot([xlim[1], xlim[0]], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
+ax2.plot([start, stop], [Fs_in/2, Fs_out/2], c='red', lw=0.5, rasterized=True)
+ax2.plot([stop, start], [Fs_in/2, Fs_out/2], c='red', lw=0.5, rasterized=True)
+
+ax2.axhspan(Fs_in/2, Fs_out/2, color='lightgray', lw=0)
+ax2.plot([start, stop], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
+ax2.plot([stop, start], [Fs_in/2, Fs_out/2], c='red', lw=0.5)
 
 
 ax3 = plt.subplot(gs[1, 1], sharex=ax2, sharey=ax2)
