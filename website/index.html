@@ -6,7 +6,6 @@
         <title>Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion – IEEE Signal Processing Letters</title>
         <style>
             :root {
-                /*font-family: 'Times New Roman', serif;*/
                 font-family: 'Noto Sans', sans-serif;
                 font-size: 16px;
             }
@@ -50,11 +49,16 @@
         <h1>Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion</h1>
         <p>Roope Salmi and Vesa Välimäki</p>
         <p>Companion page to the journal article submitted to IEEE Signal Processing Letters</p>
-        <p>Source code available <a href="https://github.com/ollpu/fft-src-nyquist-suppression">here</a>.</p>
+        <p>
+            Article <a href="https://ieeexplore.ieee.org/document/11354502">available online</a>.
+            Source code <a href="https://github.com/ollpu/fft-src-nyquist-suppression">on GitHub</a>.
+        </p>
         <h2>Abstract</h2>
         <p>
             Sample rate conversion, a common task in audio signal processing, can be performed with high quality using the fast Fourier transform (FFT) on the whole audio file. Before returning to the time domain using the inverse FFT, the sample rate of the signal is changed by either truncating or zero-padding the frequency-domain buffer. This operation leaves a discontinuity in the spectrum, which causes time-domain ringing at that frequency. The ringing can be suppressed by tapering the highest frequency bins. This letter introduces the double Dolph-Chebyshev window, a frequency-domain tapering function with a configurable level of ringing outside its main lobe in the transform domain. In comparison to basic cosine tapering, the proposed method provides, for example, a 150-dB suppression 91% faster. This letter improves the accuracy of FFT-based sample rate conversion, making it a practical tool for signal processing.
         </p>
+        <h2>How to Cite</h2>
+        <p>R. Salmi and V. Välimäki, "Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion," in <i>IEEE Signal Processing Letters</i>, vol. 33, pp. 683-687, 2026</p>
         <h2>Example Conversion</h2>
         <figure>
             <img src="example.png">
@@ -69,5 +73,7 @@
         <h3>Output signal $x'(n)$, with frequency-domain DDC tapering</h3>
         <p>Sample rate 22.05 kHz.</p>
         <p><audio controls src="example_tapered.wav"></audio></p>
+        <hr>
+        <p>Last updated: Feb. 13, 2026. Contact <a href="mailto:rpsalmi@gmail.com">rpsalmi@gmail.com</a></p>
     </body>
 </html>

@@ -1,10 +1,13 @@
 # Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion
 
-_Roope Salmi and Vesa Välimäki_
+This repository contains the source code and resources related to the Letter accepted for publication in IEEE Signal Processing Letters:
 
-This repository contains the source code and resources related to the Letter accepted for publication in IEEE Signal Processing Letters, to appear.
+R. Salmi and V. Välimäki, "Suppression of Nyquist Ringing in FFT-Based Sample Rate Conversion," in _IEEE Signal Processing Letters_, vol. 33, pp. 683-687, 2026
+
+Available: <https://ieeexplore.ieee.org/document/11354502>
 
 Website with sound examples: <https://ollpu.github.io/fft-src-nyquist-suppression>
+
 
 ## Scripts
 
